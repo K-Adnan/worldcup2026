@@ -1,5 +1,57 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+/// One pitch slot assignment (player on a formation dot) for Match Centre.
+class PitchSlotPlayer {
+  const PitchSlotPlayer({this.number, this.name = ''});
+
+  final int? number;
+  final String name;
+
+  bool get isAssigned => name.trim().isNotEmpty;
+
+  Map<String, dynamic> toFirestoreMap() => <String, dynamic>{
+        'number': number,
+        'name': name,
+      };
+
+  factory PitchSlotPlayer.fromFirestoreMap(Map<String, dynamic> m) {
+    final raw = m['number'];
+    int? shirt;
+    if (raw is int) {
+      shirt = raw;
+    } else if (raw is num) {
+      shirt = raw.toInt();
+    } else if (raw != null) {
+      shirt = int.tryParse(raw.toString());
+    }
+    return PitchSlotPlayer(
+      number: shirt,
+      name: m['name'] as String? ?? '',
+    );
+  }
+
+  factory PitchSlotPlayer.fromTeamPlayer(TeamPlayer p) {
+    return PitchSlotPlayer(number: p.number, name: p.name);
+  }
+}
+
+List<PitchSlotPlayer>? _parsePitchSlotPlayers(dynamic value) {
+  if (value is! List || value.isEmpty) return null;
+  try {
+    final out = <PitchSlotPlayer>[];
+    for (final e in value) {
+      if (e is Map<String, dynamic>) {
+        out.add(PitchSlotPlayer.fromFirestoreMap(e));
+      } else if (e is Map) {
+        out.add(PitchSlotPlayer.fromFirestoreMap(Map<String, dynamic>.from(e)));
+      }
+    }
+    return out.isEmpty ? null : out;
+  } catch (_) {
+    return null;
+  }
+}
+
 class DaySchedule {
   const DaySchedule({required this.date, required this.matches});
 
@@ -32,6 +84,8 @@ class MatchFixture {
     this.awayScore = '-',
     this.homeFormation = '4-4-2',
     this.awayFormation = '4-4-2',
+    this.homeSlotPlayers,
+    this.awaySlotPlayers,
   });
 
   final int matchNumber;
@@ -47,6 +101,8 @@ class MatchFixture {
   final String awayScore;
   final String homeFormation;
   final String awayFormation;
+  final List<PitchSlotPlayer>? homeSlotPlayers;
+  final List<PitchSlotPlayer>? awaySlotPlayers;
 
   factory MatchFixture.fromJson(Map<String, dynamic> json) {
     return MatchFixture(
@@ -67,6 +123,8 @@ class MatchFixture {
       awayFormation: (json['awayFormation'] as String?)?.trim().isNotEmpty == true
           ? json['awayFormation'] as String
           : '4-4-2',
+      homeSlotPlayers: _parsePitchSlotPlayers(json['homeSlotPlayers']),
+      awaySlotPlayers: _parsePitchSlotPlayers(json['awaySlotPlayers']),
     );
   }
 }

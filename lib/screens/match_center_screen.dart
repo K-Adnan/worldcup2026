@@ -124,12 +124,20 @@ class _MatchCenterScreenState extends State<MatchCenterScreen> {
                             const SizedBox(height: 12),
                             MatchPitch(
                               key: ValueKey<String>(
-                                '${match.matchNumber}-${match.homeFormation}-${match.awayFormation}',
+                                '${match.matchNumber}-${match.homeFormation}-${match.awayFormation}'
+                                '-${_slotPlayersKey(match.homeSlotPlayers)}'
+                                '-${_slotPlayersKey(match.awaySlotPlayers)}',
                               ),
                               height: pitchHeight,
                               matchNumber: match.matchNumber,
                               initialHomeFormation: match.homeFormation,
                               initialAwayFormation: match.awayFormation,
+                              homeSquad: _findTeamByName(match.homeTeam)?.squad ??
+                                  const <TeamPlayer>[],
+                              awaySquad: _findTeamByName(match.awayTeam)?.squad ??
+                                  const <TeamPlayer>[],
+                              initialHomeSlotPlayers: match.homeSlotPlayers,
+                              initialAwaySlotPlayers: match.awaySlotPlayers,
                             ),
                           ],
                         ),
@@ -314,6 +322,11 @@ class _MatchCenterScreenState extends State<MatchCenterScreen> {
         ],
       ),
     );
+  }
+
+  String _slotPlayersKey(List<PitchSlotPlayer>? slots) {
+    if (slots == null || slots.isEmpty) return '0';
+    return slots.map((s) => '${s.number}:${s.name}').join(',');
   }
 
   TeamInfo? _findTeamByName(String teamName) {
