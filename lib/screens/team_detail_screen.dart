@@ -328,66 +328,69 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
         ),
       ),
       child: Theme(
-        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        // The dense visual density helps pull everything together
+        data: Theme.of(context).copyWith(
+          dividerColor: Colors.transparent,
+          visualDensity: const VisualDensity(vertical: -4),
+        ),
         child: ExpansionTile(
+          // Tightens the internal padding of the tile
+          tilePadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
           trailing: Text(
             _formatMarketValue(p.marketValue),
             style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
           ),
           leading: CircleAvatar(
+            radius: 16, // Slightly smaller radius to save vertical space
             backgroundColor: Colors.blueGrey[50],
             child: Text(
                 p.number?.toString() ?? "-",
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)
+                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)
             ),
           ),
           title: Text(
             p.name,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
             overflow: TextOverflow.ellipsis,
           ),
-            subtitle: Row(
-              children: [
-                // 1. Position (The "Job")
-                Text(
-                    p.position,
-                    style: TextStyle(color: Colors.blue[800], fontSize: 12, fontWeight: FontWeight.w500)
+          subtitle: Row(
+            children: [
+              Text(
+                  p.position,
+                  style: TextStyle(color: Colors.blue[800], fontSize: 11, fontWeight: FontWeight.w500)
+              ),
+              const SizedBox(width: 6),
+              Text(
+                  "•  ${_ageInYears(p.dateOfBirth)}y | ${_formatHeight(p.heightCm)}",
+                  style: const TextStyle(color: Colors.grey, fontSize: 10)
+              ),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  "•  ${p.caps}/${p.goals}",
+                  style: TextStyle(color: Colors.blueGrey[400], fontSize: 10, fontWeight: FontWeight.w600),
+                  overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(width: 8),
-
-                // 2. Physicals: Age & Height (Grouped to save space)
-                Text(
-                    "•  ${_ageInYears(p.dateOfBirth)}y | ${_formatHeight(p.heightCm)}",
-                    style: const TextStyle(color: Colors.grey, fontSize: 11)
-                ),
-                const SizedBox(width: 8),
-
-                Flexible(
-                  child: Text(
-                    "•  ${p.caps}/${p.goals}",
-                    style: TextStyle(color: Colors.blueGrey[400], fontSize: 11, fontWeight: FontWeight.w600),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                _buildFootBadge(p.preferredFoot),
-              ],
-            ),
+              ),
+              const SizedBox(width: 4),
+              _buildFootBadge(p.preferredFoot),
+            ],
+          ),
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 12), // Reduced top padding
               child: Column(
                 children: [
                   const Divider(height: 1, thickness: 0.5),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8), // Reduced gap
                   _playerDetailRow("Club", p.club),
                   _playerDetailRow(
-                    "Date of Birth",
+                    "DOB", // Shortened label to keep row tight
                     p.dateOfBirth != null
                         ? "${p.dateOfBirth!.day.toString().padLeft(2, '0')}/${p.dateOfBirth!.month.toString().padLeft(2, '0')}/${p.dateOfBirth!.year}"
                         : "-",
                   ),
-                  _playerDetailRow("Debut Date", p.debut != null
+                  _playerDetailRow("Debut", p.debut != null
                       ? "${p.debut!.day.toString().padLeft(2, '0')}/${p.debut!.month.toString().padLeft(2, '0')}/${p.debut!.year}"
                       : "N/A"),
                 ],
@@ -398,7 +401,6 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
       ),
     );
   }
-
   Color _positionCategoryColor(String category) {
     switch (category) {
       case 'Goalkeeper':
