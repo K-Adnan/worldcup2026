@@ -225,25 +225,39 @@ class ScheduleScreenState extends State<ScheduleScreen> {
 
   bool _matchBelongsToSelectedGroups(MatchFixture match) {
     final teamToGroup = _teamToGroup;
-    final homeGroup = _resolveTeamGroup(match.homeTeam, teamToGroup);
-    final awayGroup = _resolveTeamGroup(match.awayTeam, teamToGroup);
-    if (homeGroup != null && _selectedGroups.contains(homeGroup)) {
+    final homeGroups = _resolveTeamGroups(match.homeTeam, teamToGroup);
+    final awayGroups = _resolveTeamGroups(match.awayTeam, teamToGroup);
+    if (homeGroups.any(_selectedGroups.contains)) {
       return true;
     }
-    if (awayGroup != null && _selectedGroups.contains(awayGroup)) {
+    if (awayGroups.any(_selectedGroups.contains)) {
       return true;
     }
     return false;
   }
 
-  String? _resolveTeamGroup(String teamName, Map<String, String> teamToGroup) {
+  Set<String> _resolveTeamGroups(String teamName, Map<String, String> teamToGroup) {
+    final groups = <String>{};
     final direct = teamToGroup[teamName];
-    if (direct != null && direct.isNotEmpty) return direct;
-    final tokenMatch = RegExp(r'([A-L])-[123]').firstMatch(teamName.toUpperCase());
-    if (tokenMatch != null) {
-      return 'Group ${tokenMatch.group(1)}';
+    if (direct != null && direct.isNotEmpty) {
+      groups.add(direct);
     }
-    return null;
+
+    final normalized = teamName.toUpperCase();
+    final tokenMatch = RegExp(r'([A-L])-[123]').firstMatch(normalized);
+    if (tokenMatch != null) {
+      groups.add('Group ${tokenMatch.group(1)}');
+    }
+
+    final combinedThirdPlace = RegExp(r'^([A-L](?:/[A-L])+)-3$').firstMatch(normalized);
+    if (combinedThirdPlace != null) {
+      final letters = combinedThirdPlace.group(1)!.split('/');
+      for (final letter in letters) {
+        groups.add('Group $letter');
+      }
+    }
+
+    return groups;
   }
 
   void _toggleFilter(Set<String> selectedSet, String value, bool isSelected) {
