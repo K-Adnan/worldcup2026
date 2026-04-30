@@ -62,17 +62,113 @@ class MatchFixture {
 }
 
 class TeamInfo {
-  const TeamInfo(this.name, {this.note, this.group});
+  const TeamInfo(this.name, {this.note, this.group, this.squad});
 
   final String name;
   final String? note;
   final String? group;
+  final List<TeamPlayer>? squad;
 
   factory TeamInfo.fromJson(Map<String, dynamic> json) {
     return TeamInfo(
       json['name'] as String? ?? '',
       note: json['note'] as String?,
       group: json['group'] as String?,
+      squad: (json['squad'] as List<dynamic>?)
+          ?.map((item) => TeamPlayer.fromJson(item as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+}
+
+class TeamPlayer {
+  const TeamPlayer({
+    this.number,
+    required this.name,
+    required this.position,
+    required this.dateOfBirth,
+    required this.club,
+    required this.heightCm,
+    required this.preferredFoot,
+    required this.caps,
+    required this.goals,
+    required this.debut,
+    required this.marketValue,
+  });
+
+  final int? number;
+  final String name;
+  final String position;
+  final DateTime? dateOfBirth;
+  final String club;
+  final int heightCm;
+  final String preferredFoot;
+  final int caps;
+  final int goals;
+  final DateTime? debut;
+  final int marketValue;
+
+  String get categoryPosition {
+    final pos = position.toLowerCase();
+    if (pos == 'goalkeeper') return 'Goalkeeper';
+    if (pos == 'centre-back' || pos == 'left-back' || pos == 'right-back') {
+      return 'Defender';
+    }
+    if (pos == 'right winger' ||
+        pos == 'left winger' ||
+        pos == 'second striker' ||
+        pos == 'centre-forward') {
+      return 'Attacker';
+    }
+    return 'Midfielder';
+  }
+
+  static int _parseInt(dynamic value) {
+    if (value is int) return value;
+    final raw = value?.toString() ?? '';
+    final cleaned = raw.replaceAll(RegExp(r'[^0-9]'), '');
+    return int.tryParse(cleaned) ?? 0;
+  }
+
+  static int? _parseNullableInt(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    return int.tryParse(value.toString());
+  }
+
+  static DateTime? _parseDate(dynamic value) {
+    if (value == null) return null;
+    if (value is Timestamp) return value.toDate();
+    final raw = value.toString().trim();
+    if (raw.isEmpty) return null;
+    final dateOnly = raw.split('(').first.trim();
+    try {
+      final parts = dateOnly.split('/');
+      if (parts.length == 3) {
+        final day = int.parse(parts[0]);
+        final month = int.parse(parts[1]);
+        final year = int.parse(parts[2]);
+        return DateTime(year, month, day);
+      }
+      return DateTime.tryParse(raw);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  factory TeamPlayer.fromJson(Map<String, dynamic> json) {
+    return TeamPlayer(
+      number: _parseNullableInt(json['number']),
+      name: json['name'] as String? ?? '',
+      position: json['position'] as String? ?? '',
+      dateOfBirth: _parseDate(json['dateOfBirth']),
+      club: json['club'] as String? ?? '',
+      heightCm: _parseInt(json['height']),
+      preferredFoot: json['preferredFoot'] as String? ?? '',
+      caps: _parseInt(json['caps']),
+      goals: _parseInt(json['goals']),
+      debut: _parseDate(json['debut']),
+      marketValue: _parseInt(json['marketValue']),
     );
   }
 }

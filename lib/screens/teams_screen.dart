@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../data/world_cup_data.dart';
+import 'team_detail_screen.dart';
 import '../utils/flag_asset.dart';
 
 class TeamsScreen extends StatelessWidget {
@@ -17,6 +18,13 @@ class TeamsScreen extends StatelessWidget {
       itemBuilder: (context, index) {
         final team = teams[index];
         return ListTile(
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => TeamDetailScreen(team: team),
+              ),
+            );
+          },
           leading: SizedBox(
             width: 30,
             child: Image.asset(
