@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 
 const List<String> kFormationOptions = [
+  '3-2-4-1',
   '3-5-2',
   '3-4-3',
+  '4-1-2-3',
+  '4-1-3-2',
+  '4-1-4-1',
   '4-2-3-1',
   '4-3-2-1',
   '4-3-3',
@@ -207,6 +211,8 @@ class _MatchPitchState extends State<MatchPitch> {
         widthFactor = 0.30; // 2 players use 30% width
       } else if (count == 3) {
         widthFactor = 0.55; // 3 players use 50% width
+      } else if (count == 4) {
+        widthFactor = 0.80; // 3 players use 50% width
       } else {
         widthFactor = 0.85; // 4+ players spread out
       }
