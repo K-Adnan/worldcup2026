@@ -73,7 +73,9 @@ class MatchCenterScreen extends StatelessWidget {
                           match.broadcaster,
                         ),
                         const SizedBox(height: 12),
-                        MatchPitch(height: pitchHeight),
+                        MatchPitch(
+                          height: pitchHeight,
+                        ),
                       ],
                     ),
                   );
