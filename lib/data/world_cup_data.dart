@@ -21,40 +21,51 @@ class DaySchedule {
 
 class MatchFixture {
   const MatchFixture({
+    required this.matchNumber,
     required this.time,
     required this.homeTeam,
     required this.awayTeam,
     required this.broadcaster,
+    required this.stage,
     this.stadium = 'TBC',
+    this.city = 'TBC',
   });
 
+  final int matchNumber;
   final String time;
   final String homeTeam;
   final String awayTeam;
   final String broadcaster;
+  final String stage;
   final String stadium;
+  final String city;
 
   factory MatchFixture.fromJson(Map<String, dynamic> json) {
     return MatchFixture(
+      matchNumber: json['matchNumber'] as int? ?? 0,
       time: json['time'] as String? ?? '',
       homeTeam: json['homeTeam'] as String? ?? '',
       awayTeam: json['awayTeam'] as String? ?? '',
       broadcaster: json['broadcaster'] as String? ?? '',
+      stage: json['stage'] as String? ?? 'TBC',
       stadium: json['stadium'] as String? ?? 'TBC',
+      city: json['city'] as String? ?? 'TBC',
     );
   }
 }
 
 class TeamInfo {
-  const TeamInfo(this.name, {this.note});
+  const TeamInfo(this.name, {this.note, this.group});
 
   final String name;
   final String? note;
+  final String? group;
 
   factory TeamInfo.fromJson(Map<String, dynamic> json) {
     return TeamInfo(
       json['name'] as String? ?? '',
       note: json['note'] as String?,
+      group: json['group'] as String?,
     );
   }
 }

@@ -18,7 +18,8 @@ void main() {
     expect(find.text('Schedule'), findsOneWidget);
     expect(find.text('Teams'), findsOneWidget);
     expect(find.text('Table'), findsOneWidget);
-    expect(find.text('Thursday 11th June 2026'), findsOneWidget);
-    expect(find.textContaining('Mexico v South Africa'), findsOneWidget);
+    expect(find.text('11-JUN-26'), findsOneWidget);
+    expect(find.text('Mexico'), findsWidgets);
+    expect(find.text('South Africa'), findsWidgets);
   });
 }

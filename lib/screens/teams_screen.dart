@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../data/world_cup_data.dart';
+import '../utils/flag_asset.dart';
 
 class TeamsScreen extends StatelessWidget {
   const TeamsScreen({super.key, required this.teams});
@@ -16,6 +17,15 @@ class TeamsScreen extends StatelessWidget {
       itemBuilder: (context, index) {
         final team = teams[index];
         return ListTile(
+          leading: SizedBox(
+            width: 30,
+            child: Image.asset(
+              flagAssetForTeam(team.name),
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) =>
+                  const Icon(Icons.flag_outlined),
+            ),
+          ),
           title: Text(team.name),
           subtitle: team.note == null ? null : Text(team.note!),
         );

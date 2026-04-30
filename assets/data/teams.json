@@ -1,50 +1,202 @@
 [
-  { "name": "Algeria" },
-  { "name": "Argentina", "note": "Defending Champions" },
-  { "name": "Australia" },
-  { "name": "Austria" },
-  { "name": "Belgium" },
-  { "name": "Bosnia and Herzegovina" },
-  { "name": "Brazil" },
-  { "name": "Canada", "note": "Co-host" },
-  { "name": "Cape Verde", "note": "Debut" },
-  { "name": "Colombia" },
-  { "name": "Croatia" },
-  { "name": "Curaçao", "note": "Debut" },
-  { "name": "Czech Republic" },
-  { "name": "DR Congo" },
-  { "name": "Ecuador" },
-  { "name": "Egypt" },
-  { "name": "England" },
-  { "name": "France" },
-  { "name": "Germany" },
-  { "name": "Ghana" },
-  { "name": "Haiti" },
-  { "name": "Iran" },
-  { "name": "Iraq" },
-  { "name": "Ivory Coast" },
-  { "name": "Japan" },
-  { "name": "Jordan", "note": "Debut" },
-  { "name": "Mexico", "note": "Co-host" },
-  { "name": "Morocco" },
-  { "name": "Netherlands" },
-  { "name": "New Zealand" },
-  { "name": "Norway" },
-  { "name": "Panama" },
-  { "name": "Paraguay" },
-  { "name": "Portugal" },
-  { "name": "Qatar" },
-  { "name": "Saudi Arabia" },
-  { "name": "Scotland" },
-  { "name": "Senegal" },
-  { "name": "South Africa" },
-  { "name": "South Korea" },
-  { "name": "Spain" },
-  { "name": "Sweden" },
-  { "name": "Switzerland" },
-  { "name": "Tunisia" },
-  { "name": "Türkiye" },
-  { "name": "United States", "note": "Co-host" },
-  { "name": "Uruguay" },
-  { "name": "Uzbekistan", "note": "Debut" }
+  {
+    "name": "Algeria",
+    "group": "Group I"
+  },
+  {
+    "name": "Argentina",
+    "note": "Defending Champions",
+    "group": "Group F"
+  },
+  {
+    "name": "Australia",
+    "group": "Group F"
+  },
+  {
+    "name": "Austria",
+    "group": "Group B"
+  },
+  {
+    "name": "Belgium",
+    "group": "Group A"
+  },
+  {
+    "name": "Bosnia and Herzegovina",
+    "group": "Group E"
+  },
+  {
+    "name": "Brazil",
+    "group": "Group E"
+  },
+  {
+    "name": "Canada",
+    "note": "Co-host",
+    "group": "Group B"
+  },
+  {
+    "name": "Cape Verde",
+    "note": "Debut",
+    "group": "Group K"
+  },
+  {
+    "name": "Colombia",
+    "group": "Group J"
+  },
+  {
+    "name": "Croatia",
+    "group": "Group K"
+  },
+  {
+    "name": "Curaçao",
+    "note": "Debut",
+    "group": "Group H"
+  },
+  {
+    "name": "Czech Republic",
+    "group": "Group D"
+  },
+  {
+    "name": "DR Congo",
+    "group": "Group D"
+  },
+  {
+    "name": "Ecuador",
+    "group": "Group L"
+  },
+  {
+    "name": "Egypt",
+    "group": "Group G"
+  },
+  {
+    "name": "England",
+    "group": "Group H"
+  },
+  {
+    "name": "France",
+    "group": "Group D"
+  },
+  {
+    "name": "Germany",
+    "group": "Group I"
+  },
+  {
+    "name": "Ghana",
+    "group": "Group F"
+  },
+  {
+    "name": "Haiti",
+    "group": "Group I"
+  },
+  {
+    "name": "Iran",
+    "group": "Group L"
+  },
+  {
+    "name": "Iraq",
+    "group": "Group B"
+  },
+  {
+    "name": "Ivory Coast",
+    "group": "Group H"
+  },
+  {
+    "name": "Japan",
+    "group": "Group E"
+  },
+  {
+    "name": "Jordan",
+    "note": "Debut",
+    "group": "Group C"
+  },
+  {
+    "name": "Mexico",
+    "note": "Co-host",
+    "group": "Group A"
+  },
+  {
+    "name": "Morocco",
+    "group": "Group K"
+  },
+  {
+    "name": "Netherlands",
+    "group": "Group J"
+  },
+  {
+    "name": "New Zealand",
+    "group": "Group J"
+  },
+  {
+    "name": "Norway",
+    "group": "Group F"
+  },
+  {
+    "name": "Panama",
+    "group": "Group G"
+  },
+  {
+    "name": "Paraguay",
+    "group": "Group C"
+  },
+  {
+    "name": "Portugal",
+    "group": "Group I"
+  },
+  {
+    "name": "Qatar",
+    "group": "Group K"
+  },
+  {
+    "name": "Saudi Arabia",
+    "group": "Group A"
+  },
+  {
+    "name": "Scotland",
+    "group": "Group L"
+  },
+  {
+    "name": "Senegal",
+    "group": "Group J"
+  },
+  {
+    "name": "South Africa",
+    "group": "Group A"
+  },
+  {
+    "name": "South Korea",
+    "group": "Group B"
+  },
+  {
+    "name": "Spain",
+    "group": "Group G"
+  },
+  {
+    "name": "Sweden",
+    "group": "Group C"
+  },
+  {
+    "name": "Switzerland",
+    "group": "Group G"
+  },
+  {
+    "name": "Tunisia",
+    "group": "Group E"
+  },
+  {
+    "name": "Türkiye",
+    "group": "Group H"
+  },
+  {
+    "name": "United States",
+    "note": "Co-host",
+    "group": "Group C"
+  },
+  {
+    "name": "Uruguay",
+    "group": "Group L"
+  },
+  {
+    "name": "Uzbekistan",
+    "note": "Debut",
+    "group": "Group D"
+  }
 ]

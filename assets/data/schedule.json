@@ -1,595 +1,1211 @@
 [
   {
-    "date": "Thursday 11th June 2026",
+    "date": "11-Jun-26",
     "matches": [
       {
-        "time": "20:00",
+        "matchNumber": 1,
+        "time": "13:00",
         "homeTeam": "Mexico",
         "awayTeam": "South Africa",
         "broadcaster": "ITV1",
-        "stadium": "TBC"
-      }
-    ]
-  },
-  {
-    "date": "Friday 12th June 2026",
-    "matches": [
-      {
-        "time": "03:00",
-        "homeTeam": "South Korea",
-        "awayTeam": "Czech Republic",
-        "broadcaster": "ITV",
-        "stadium": "TBC"
+        "stadium": "Estadio Azteca",
+        "city": "Mexico City",
+        "stage": "Group A"
       },
       {
+        "matchNumber": 2,
         "time": "20:00",
-        "homeTeam": "Canada",
-        "awayTeam": "Bosnia-Herzegovina",
-        "broadcaster": "BBC",
-        "stadium": "TBC"
+        "homeTeam": "South Korea",
+        "awayTeam": "Czechia",
+        "broadcaster": "ITV",
+        "stadium": "Estadio Akron",
+        "city": "Guadalajara",
+        "stage": "Group B"
       }
     ]
   },
   {
-    "date": "Saturday 13th June 2026",
+    "date": "12-Jun-26",
     "matches": [
       {
-        "time": "02:00",
+        "matchNumber": 3,
+        "time": "15:00",
+        "homeTeam": "Canada",
+        "awayTeam": "Bosnia and Herzegovina",
+        "broadcaster": "BBC",
+        "stadium": "BMO Field",
+        "city": "Toronto",
+        "stage": "Group B"
+      },
+      {
+        "matchNumber": 4,
+        "time": "18:00",
         "homeTeam": "USA",
         "awayTeam": "Paraguay",
         "broadcaster": "BBC",
-        "stadium": "TBC"
-      },
-      {
-        "time": "20:00",
-        "homeTeam": "Qatar",
-        "awayTeam": "Switzerland",
-        "broadcaster": "ITV",
-        "stadium": "TBC"
-      },
-      {
-        "time": "23:00",
-        "homeTeam": "Brazil",
-        "awayTeam": "Morocco",
-        "broadcaster": "BBC",
-        "stadium": "TBC"
+        "stadium": "SoFi Stadium",
+        "city": "Los Angeles",
+        "stage": "Group C"
       }
     ]
   },
   {
-    "date": "Sunday 14th June 2026",
+    "date": "13-Jun-26",
     "matches": [
       {
-        "time": "02:00",
+        "matchNumber": 5,
+        "time": "21:00",
         "homeTeam": "Haiti",
         "awayTeam": "Scotland",
         "broadcaster": "BBC",
-        "stadium": "TBC"
+        "stadium": "Gillette Stadium",
+        "city": "Boston",
+        "stage": "Group I"
       },
       {
-        "time": "05:00",
-        "homeTeam": "Australia",
-        "awayTeam": "Turkey",
-        "broadcaster": "ITV",
-        "stadium": "TBC"
-      },
-      {
-        "time": "18:00",
-        "homeTeam": "Germany",
-        "awayTeam": "Curacao",
-        "broadcaster": "ITV",
-        "stadium": "TBC"
-      },
-      {
+        "matchNumber": 6,
         "time": "21:00",
-        "homeTeam": "Netherlands",
-        "awayTeam": "Japan",
+        "homeTeam": "Australia",
+        "awayTeam": "Türkiye",
         "broadcaster": "ITV",
-        "stadium": "TBC"
+        "stadium": "BC Place",
+        "city": "Vancouver",
+        "stage": "Group F"
+      },
+      {
+        "matchNumber": 7,
+        "time": "18:00",
+        "homeTeam": "Brazil",
+        "awayTeam": "Morocco",
+        "broadcaster": "BBC",
+        "stadium": "MetLife Stadium",
+        "city": "New York/New Jersey",
+        "stage": "Group E"
+      },
+      {
+        "matchNumber": 8,
+        "time": "12:00",
+        "homeTeam": "Qatar",
+        "awayTeam": "Switzerland",
+        "broadcaster": "ITV",
+        "stadium": "Levi's Stadium",
+        "city": "San Francisco Bay Area",
+        "stage": "Group K"
       }
     ]
   },
   {
-    "date": "Monday 15th June 2026",
+    "date": "14-Jun-26",
     "matches": [
       {
-        "time": "00:00",
+        "matchNumber": 9,
+        "time": "19:00",
         "homeTeam": "Ivory Coast",
         "awayTeam": "Ecuador",
         "broadcaster": "BBC",
-        "stadium": "TBC"
+        "stadium": "Lincoln Financial Field",
+        "city": "Philadelphia",
+        "stage": "Group H"
       },
       {
-        "time": "03:00",
+        "matchNumber": 10,
+        "time": "12:00",
+        "homeTeam": "Germany",
+        "awayTeam": "Curaçao",
+        "broadcaster": "ITV",
+        "stadium": "NRG Stadium",
+        "city": "Houston",
+        "stage": "Group I"
+      },
+      {
+        "matchNumber": 11,
+        "time": "15:00",
+        "homeTeam": "Netherlands",
+        "awayTeam": "Japan",
+        "broadcaster": "ITV",
+        "stadium": "AT&T Stadium",
+        "city": "Dallas",
+        "stage": "Group J"
+      },
+      {
+        "matchNumber": 12,
+        "time": "20:00",
         "homeTeam": "Sweden",
         "awayTeam": "Tunisia",
         "broadcaster": "ITV",
-        "stadium": "TBC"
-      },
+        "stadium": "Estadio BBVA",
+        "city": "Monterrey",
+        "stage": "Group C"
+      }
+    ]
+  },
+  {
+    "date": "15-Jun-26",
+    "matches": [
       {
-        "time": "17:00",
-        "homeTeam": "Spain",
-        "awayTeam": "Cape Verde",
-        "broadcaster": "ITV",
-        "stadium": "TBC"
-      },
-      {
-        "time": "20:00",
-        "homeTeam": "Belgium",
-        "awayTeam": "Egypt",
-        "broadcaster": "BBC",
-        "stadium": "TBC"
-      },
-      {
-        "time": "23:00",
+        "matchNumber": 13,
+        "time": "18:00",
         "homeTeam": "Saudi Arabia",
         "awayTeam": "Uruguay",
         "broadcaster": "ITV",
-        "stadium": "TBC"
-      }
-    ]
-  },
-  {
-    "date": "Tuesday 16th June 2026",
-    "matches": [
+        "stadium": "Hard Rock Stadium",
+        "city": "Miami",
+        "stage": "Group A"
+      },
       {
-        "time": "02:00",
+        "matchNumber": 14,
+        "time": "12:00",
+        "homeTeam": "Spain",
+        "awayTeam": "Cape Verde",
+        "broadcaster": "ITV",
+        "stadium": "Mercedes-Benz Stadium",
+        "city": "Atlanta",
+        "stage": "Group G"
+      },
+      {
+        "matchNumber": 15,
+        "time": "18:00",
         "homeTeam": "Iran",
         "awayTeam": "New Zealand",
         "broadcaster": "BBC",
-        "stadium": "TBC"
+        "stadium": "SoFi Stadium",
+        "city": "Los Angeles",
+        "stage": "Group L"
       },
       {
-        "time": "20:00",
+        "matchNumber": 16,
+        "time": "12:00",
+        "homeTeam": "Belgium",
+        "awayTeam": "Egypt",
+        "broadcaster": "BBC",
+        "stadium": "Lumen Field",
+        "city": "Seattle",
+        "stage": "Group A"
+      }
+    ]
+  },
+  {
+    "date": "16-Jun-26",
+    "matches": [
+      {
+        "matchNumber": 17,
+        "time": "15:00",
         "homeTeam": "France",
         "awayTeam": "Senegal",
         "broadcaster": "BBC",
-        "stadium": "TBC"
+        "stadium": "MetLife Stadium",
+        "city": "New York/New Jersey",
+        "stage": "Group D"
       },
       {
-        "time": "23:00",
+        "matchNumber": 18,
+        "time": "18:00",
         "homeTeam": "Iraq",
         "awayTeam": "Norway",
         "broadcaster": "BBC",
-        "stadium": "TBC"
-      }
-    ]
-  },
-  {
-    "date": "Wednesday 17th June 2026",
-    "matches": [
+        "stadium": "Gillette Stadium",
+        "city": "Boston",
+        "stage": "Group B"
+      },
       {
-        "time": "02:00",
+        "matchNumber": 19,
+        "time": "20:00",
         "homeTeam": "Argentina",
         "awayTeam": "Algeria",
         "broadcaster": "ITV",
-        "stadium": "TBC"
+        "stadium": "Arrowhead Stadium",
+        "city": "Kansas City",
+        "stage": "Group F"
       },
       {
-        "time": "05:00",
+        "matchNumber": 20,
+        "time": "21:00",
         "homeTeam": "Austria",
         "awayTeam": "Jordan",
         "broadcaster": "BBC",
-        "stadium": "TBC"
-      },
-      {
-        "time": "18:00",
-        "homeTeam": "Portugal",
-        "awayTeam": "DR Congo",
-        "broadcaster": "BBC",
-        "stadium": "TBC"
-      },
-      {
-        "time": "21:00",
-        "homeTeam": "England",
-        "awayTeam": "Croatia",
-        "broadcaster": "ITV1",
-        "stadium": "TBC"
+        "stadium": "Levi's Stadium",
+        "city": "San Francisco Bay Area",
+        "stage": "Group B"
       }
     ]
   },
   {
-    "date": "Thursday 18th June 2026",
+    "date": "17-Jun-26",
     "matches": [
       {
-        "time": "00:00",
+        "matchNumber": 21,
+        "time": "19:00",
         "homeTeam": "Ghana",
         "awayTeam": "Panama",
         "broadcaster": "ITV",
-        "stadium": "TBC"
+        "stadium": "BMO Field",
+        "city": "Toronto",
+        "stage": "Group F"
       },
       {
-        "time": "03:00",
+        "matchNumber": 22,
+        "time": "15:00",
+        "homeTeam": "England",
+        "awayTeam": "Croatia",
+        "broadcaster": "ITV1",
+        "stadium": "AT&T Stadium",
+        "city": "Dallas",
+        "stage": "Group H"
+      },
+      {
+        "matchNumber": 23,
+        "time": "12:00",
+        "homeTeam": "Portugal",
+        "awayTeam": "Congo DR",
+        "broadcaster": "BBC",
+        "stadium": "NRG Stadium",
+        "city": "Houston",
+        "stage": "Group I"
+      },
+      {
+        "matchNumber": 24,
+        "time": "20:00",
         "homeTeam": "Uzbekistan",
         "awayTeam": "Colombia",
         "broadcaster": "BBC",
-        "stadium": "TBC"
-      },
+        "stadium": "Estadio Azteca",
+        "city": "Mexico City",
+        "stage": "Group D"
+      }
+    ]
+  },
+  {
+    "date": "18-Jun-26",
+    "matches": [
       {
-        "time": "17:00",
-        "homeTeam": "Czech Republic",
+        "matchNumber": 25,
+        "time": "12:00",
+        "homeTeam": "Czechia",
         "awayTeam": "South Africa",
         "broadcaster": "BBC",
-        "stadium": "TBC"
+        "stadium": "Mercedes-Benz Stadium",
+        "city": "Atlanta",
+        "stage": "Group D"
       },
       {
-        "time": "20:00",
+        "matchNumber": 26,
+        "time": "12:00",
         "homeTeam": "Switzerland",
-        "awayTeam": "Bosnia-Herzegovina",
+        "awayTeam": "Bosnia and Herzegovina",
         "broadcaster": "ITV",
-        "stadium": "TBC"
+        "stadium": "SoFi Stadium",
+        "city": "Los Angeles",
+        "stage": "Group G"
       },
       {
-        "time": "23:00",
+        "matchNumber": 27,
+        "time": "15:00",
         "homeTeam": "Canada",
         "awayTeam": "Qatar",
         "broadcaster": "ITV",
-        "stadium": "TBC"
-      }
-    ]
-  },
-  {
-    "date": "Friday 19th June 2026",
-    "matches": [
+        "stadium": "BC Place",
+        "city": "Vancouver",
+        "stage": "Group B"
+      },
       {
-        "time": "02:00",
+        "matchNumber": 28,
+        "time": "19:00",
         "homeTeam": "Mexico",
         "awayTeam": "South Korea",
         "broadcaster": "BBC",
-        "stadium": "TBC"
-      },
-      {
-        "time": "20:00",
-        "homeTeam": "USA",
-        "awayTeam": "Australia",
-        "broadcaster": "BBC",
-        "stadium": "TBC"
-      },
-      {
-        "time": "23:00",
-        "homeTeam": "Scotland",
-        "awayTeam": "Morocco",
-        "broadcaster": "ITV1",
-        "stadium": "TBC"
+        "stadium": "Estadio Akron",
+        "city": "Guadalajara",
+        "stage": "Group A"
       }
     ]
   },
   {
-    "date": "Saturday 20th June 2026",
+    "date": "19-Jun-26",
     "matches": [
       {
-        "time": "02:00",
+        "matchNumber": 29,
+        "time": "21:00",
         "homeTeam": "Brazil",
         "awayTeam": "Haiti",
         "broadcaster": "ITV",
-        "stadium": "TBC"
+        "stadium": "Lincoln Financial Field",
+        "city": "Philadelphia",
+        "stage": "Group E"
       },
       {
-        "time": "05:00",
-        "homeTeam": "Turkey",
+        "matchNumber": 30,
+        "time": "18:00",
+        "homeTeam": "Scotland",
+        "awayTeam": "Morocco",
+        "broadcaster": "ITV1",
+        "stadium": "Gillette Stadium",
+        "city": "Boston",
+        "stage": "Group L"
+      },
+      {
+        "matchNumber": 31,
+        "time": "20:00",
+        "homeTeam": "Türkiye",
         "awayTeam": "Paraguay",
         "broadcaster": "ITV",
-        "stadium": "TBC"
+        "stadium": "Levi's Stadium",
+        "city": "San Francisco Bay Area",
+        "stage": "Group H"
       },
       {
-        "time": "18:00",
-        "homeTeam": "Netherlands",
-        "awayTeam": "Sweden",
+        "matchNumber": 32,
+        "time": "12:00",
+        "homeTeam": "USA",
+        "awayTeam": "Australia",
         "broadcaster": "BBC",
-        "stadium": "TBC"
-      },
+        "stadium": "Lumen Field",
+        "city": "Seattle",
+        "stage": "Group C"
+      }
+    ]
+  },
+  {
+    "date": "20-Jun-26",
+    "matches": [
       {
-        "time": "21:00",
+        "matchNumber": 33,
+        "time": "16:00",
         "homeTeam": "Germany",
         "awayTeam": "Ivory Coast",
         "broadcaster": "ITV",
-        "stadium": "TBC"
-      }
-    ]
-  },
-  {
-    "date": "Sunday 21st June 2026",
-    "matches": [
-      {
-        "time": "01:00",
-        "homeTeam": "Ecuador",
-        "awayTeam": "Curacao",
-        "broadcaster": "BBC",
-        "stadium": "TBC"
+        "stadium": "BMO Field",
+        "city": "Toronto",
+        "stage": "Group I"
       },
       {
-        "time": "05:00",
+        "matchNumber": 34,
+        "time": "19:00",
+        "homeTeam": "Ecuador",
+        "awayTeam": "Curaçao",
+        "broadcaster": "BBC",
+        "stadium": "Arrowhead Stadium",
+        "city": "Kansas City",
+        "stage": "Group L"
+      },
+      {
+        "matchNumber": 35,
+        "time": "12:00",
+        "homeTeam": "Netherlands",
+        "awayTeam": "Sweden",
+        "broadcaster": "BBC",
+        "stadium": "NRG Stadium",
+        "city": "Houston",
+        "stage": "Group J"
+      },
+      {
+        "matchNumber": 36,
+        "time": "22:00",
         "homeTeam": "Tunisia",
         "awayTeam": "Japan",
         "broadcaster": "BBC",
-        "stadium": "TBC"
-      },
+        "stadium": "Estadio BBVA",
+        "city": "Monterrey",
+        "stage": "Group E"
+      }
+    ]
+  },
+  {
+    "date": "21-Jun-26",
+    "matches": [
       {
-        "time": "17:00",
-        "homeTeam": "Spain",
-        "awayTeam": "Saudi Arabia",
-        "broadcaster": "BBC",
-        "stadium": "TBC"
-      },
-      {
-        "time": "20:00",
-        "homeTeam": "Belgium",
-        "awayTeam": "Iran",
-        "broadcaster": "ITV",
-        "stadium": "TBC"
-      },
-      {
-        "time": "23:00",
+        "matchNumber": 37,
+        "time": "18:00",
         "homeTeam": "Uruguay",
         "awayTeam": "Cape Verde",
         "broadcaster": "BBC",
-        "stadium": "TBC"
-      }
-    ]
-  },
-  {
-    "date": "Monday 22nd June 2026",
-    "matches": [
+        "stadium": "Hard Rock Stadium",
+        "city": "Miami",
+        "stage": "Group L"
+      },
       {
-        "time": "02:00",
+        "matchNumber": 38,
+        "time": "12:00",
+        "homeTeam": "Spain",
+        "awayTeam": "Saudi Arabia",
+        "broadcaster": "BBC",
+        "stadium": "Mercedes-Benz Stadium",
+        "city": "Atlanta",
+        "stage": "Group G"
+      },
+      {
+        "matchNumber": 39,
+        "time": "12:00",
+        "homeTeam": "Belgium",
+        "awayTeam": "Iran",
+        "broadcaster": "ITV",
+        "stadium": "SoFi Stadium",
+        "city": "Los Angeles",
+        "stage": "Group A"
+      },
+      {
+        "matchNumber": 40,
+        "time": "18:00",
         "homeTeam": "New Zealand",
         "awayTeam": "Egypt",
         "broadcaster": "ITV",
-        "stadium": "TBC"
-      },
-      {
-        "time": "18:00",
-        "homeTeam": "Argentina",
-        "awayTeam": "Austria",
-        "broadcaster": "BBC",
-        "stadium": "TBC"
-      },
-      {
-        "time": "22:00",
-        "homeTeam": "France",
-        "awayTeam": "Iraq",
-        "broadcaster": "BBC",
-        "stadium": "TBC"
+        "stadium": "BC Place",
+        "city": "Vancouver",
+        "stage": "Group J"
       }
     ]
   },
   {
-    "date": "Tuesday 23rd June 2026",
+    "date": "22-Jun-26",
     "matches": [
       {
-        "time": "01:00",
+        "matchNumber": 41,
+        "time": "20:00",
         "homeTeam": "Norway",
         "awayTeam": "Senegal",
         "broadcaster": "ITV",
-        "stadium": "TBC"
+        "stadium": "MetLife Stadium",
+        "city": "New York/New Jersey",
+        "stage": "Group F"
       },
       {
-        "time": "04:00",
+        "matchNumber": 42,
+        "time": "17:00",
+        "homeTeam": "France",
+        "awayTeam": "Iraq",
+        "broadcaster": "BBC",
+        "stadium": "Lincoln Financial Field",
+        "city": "Philadelphia",
+        "stage": "Group D"
+      },
+      {
+        "matchNumber": 43,
+        "time": "12:00",
+        "homeTeam": "Argentina",
+        "awayTeam": "Austria",
+        "broadcaster": "BBC",
+        "stadium": "AT&T Stadium",
+        "city": "Dallas",
+        "stage": "Group F"
+      },
+      {
+        "matchNumber": 44,
+        "time": "20:00",
         "homeTeam": "Jordan",
         "awayTeam": "Algeria",
         "broadcaster": "ITV",
-        "stadium": "TBC"
-      },
+        "stadium": "Levi's Stadium",
+        "city": "San Francisco Bay Area",
+        "stage": "Group C"
+      }
+    ]
+  },
+  {
+    "date": "23-Jun-26",
+    "matches": [
       {
-        "time": "18:00",
-        "homeTeam": "Portugal",
-        "awayTeam": "Uzbekistan",
-        "broadcaster": "ITV",
-        "stadium": "TBC"
-      },
-      {
-        "time": "21:00",
+        "matchNumber": 45,
+        "time": "16:00",
         "homeTeam": "England",
         "awayTeam": "Ghana",
         "broadcaster": "BBC One",
-        "stadium": "TBC"
-      }
-    ]
-  },
-  {
-    "date": "Wednesday 24th June 2026",
-    "matches": [
+        "stadium": "Gillette Stadium",
+        "city": "Boston",
+        "stage": "Group H"
+      },
       {
-        "time": "00:00",
+        "matchNumber": 46,
+        "time": "19:00",
         "homeTeam": "Panama",
         "awayTeam": "Croatia",
         "broadcaster": "BBC",
-        "stadium": "TBC"
+        "stadium": "BMO Field",
+        "city": "Toronto",
+        "stage": "Group G"
       },
       {
-        "time": "03:00",
+        "matchNumber": 47,
+        "time": "12:00",
+        "homeTeam": "Portugal",
+        "awayTeam": "Uzbekistan",
+        "broadcaster": "ITV",
+        "stadium": "NRG Stadium",
+        "city": "Houston",
+        "stage": "Group I"
+      },
+      {
+        "matchNumber": 48,
+        "time": "20:00",
         "homeTeam": "Colombia",
-        "awayTeam": "DR Congo",
+        "awayTeam": "Congo DR",
         "broadcaster": "ITV",
-        "stadium": "TBC"
-      },
+        "stadium": "Estadio Akron",
+        "city": "Guadalajara",
+        "stage": "Group J"
+      }
+    ]
+  },
+  {
+    "date": "24-Jun-26",
+    "matches": [
       {
-        "time": "20:00",
-        "homeTeam": "Bosnia-Herzegovina",
-        "awayTeam": "Qatar",
-        "broadcaster": "ITV",
-        "stadium": "TBC"
-      },
-      {
-        "time": "20:00",
-        "homeTeam": "Switzerland",
-        "awayTeam": "Canada",
-        "broadcaster": "ITV",
-        "stadium": "TBC"
-      },
-      {
-        "time": "23:00",
-        "homeTeam": "Morocco",
-        "awayTeam": "Haiti",
-        "broadcaster": "BBC",
-        "stadium": "TBC"
-      },
-      {
-        "time": "23:00",
+        "matchNumber": 49,
+        "time": "18:00",
         "homeTeam": "Scotland",
         "awayTeam": "Brazil",
         "broadcaster": "BBC",
-        "stadium": "TBC"
-      }
-    ]
-  },
-  {
-    "date": "Thursday 25th June 2026",
-    "matches": [
-      {
-        "time": "02:00",
-        "homeTeam": "Czech Republic",
-        "awayTeam": "Mexico",
-        "broadcaster": "BBC",
-        "stadium": "TBC"
+        "stadium": "Hard Rock Stadium",
+        "city": "Miami",
+        "stage": "Group L"
       },
       {
-        "time": "02:00",
+        "matchNumber": 50,
+        "time": "18:00",
+        "homeTeam": "Morocco",
+        "awayTeam": "Haiti",
+        "broadcaster": "BBC",
+        "stadium": "Mercedes-Benz Stadium",
+        "city": "Atlanta",
+        "stage": "Group K"
+      },
+      {
+        "matchNumber": 51,
+        "time": "12:00",
+        "homeTeam": "Switzerland",
+        "awayTeam": "Canada",
+        "broadcaster": "ITV",
+        "stadium": "BC Place",
+        "city": "Vancouver",
+        "stage": "Group G"
+      },
+      {
+        "matchNumber": 52,
+        "time": "12:00",
+        "homeTeam": "Bosnia and Herzegovina",
+        "awayTeam": "Qatar",
+        "broadcaster": "ITV",
+        "stadium": "Lumen Field",
+        "city": "Seattle",
+        "stage": "Group E"
+      },
+      {
+        "matchNumber": 53,
+        "time": "19:00",
+        "homeTeam": "Czechia",
+        "awayTeam": "Mexico",
+        "broadcaster": "BBC",
+        "stadium": "Estadio Azteca",
+        "city": "Mexico City",
+        "stage": "Group D"
+      },
+      {
+        "matchNumber": 54,
+        "time": "19:00",
         "homeTeam": "South Africa",
         "awayTeam": "South Korea",
         "broadcaster": "BBC",
-        "stadium": "TBC"
-      },
+        "stadium": "Estadio BBVA",
+        "city": "Monterrey",
+        "stage": "Group A"
+      }
+    ]
+  },
+  {
+    "date": "25-Jun-26",
+    "matches": [
       {
-        "time": "21:00",
-        "homeTeam": "Curacao",
+        "matchNumber": 55,
+        "time": "16:00",
+        "homeTeam": "Curaçao",
         "awayTeam": "Ivory Coast",
         "broadcaster": "BBC",
-        "stadium": "TBC"
+        "stadium": "Lincoln Financial Field",
+        "city": "Philadelphia",
+        "stage": "Group H"
       },
       {
-        "time": "21:00",
+        "matchNumber": 56,
+        "time": "16:00",
         "homeTeam": "Ecuador",
         "awayTeam": "Germany",
         "broadcaster": "BBC",
-        "stadium": "TBC"
-      }
-    ]
-  },
-  {
-    "date": "Friday 26th June 2026",
-    "matches": [
+        "stadium": "MetLife Stadium",
+        "city": "New York/New Jersey",
+        "stage": "Group L"
+      },
       {
-        "time": "00:00",
+        "matchNumber": 57,
+        "time": "18:00",
         "homeTeam": "Japan",
         "awayTeam": "Sweden",
         "broadcaster": "BBC",
-        "stadium": "TBC"
+        "stadium": "AT&T Stadium",
+        "city": "Dallas",
+        "stage": "Group E"
       },
       {
-        "time": "00:00",
+        "matchNumber": 58,
+        "time": "18:00",
         "homeTeam": "Tunisia",
         "awayTeam": "Netherlands",
         "broadcaster": "BBC",
-        "stadium": "TBC"
+        "stadium": "Arrowhead Stadium",
+        "city": "Kansas City",
+        "stage": "Group E"
       },
       {
-        "time": "03:00",
+        "matchNumber": 59,
+        "time": "19:00",
+        "homeTeam": "Türkiye",
+        "awayTeam": "USA",
+        "broadcaster": "ITV",
+        "stadium": "SoFi Stadium",
+        "city": "Los Angeles",
+        "stage": "Group H"
+      },
+      {
+        "matchNumber": 60,
+        "time": "19:00",
         "homeTeam": "Paraguay",
         "awayTeam": "Australia",
         "broadcaster": "ITV",
-        "stadium": "TBC"
-      },
+        "stadium": "Levi's Stadium",
+        "city": "San Francisco Bay Area",
+        "stage": "Group C"
+      }
+    ]
+  },
+  {
+    "date": "26-Jun-26",
+    "matches": [
       {
-        "time": "03:00",
-        "homeTeam": "Turkey",
-        "awayTeam": "USA",
-        "broadcaster": "ITV",
-        "stadium": "TBC"
-      },
-      {
-        "time": "20:00",
+        "matchNumber": 61,
+        "time": "15:00",
         "homeTeam": "Norway",
         "awayTeam": "France",
         "broadcaster": "ITV",
-        "stadium": "TBC"
+        "stadium": "Gillette Stadium",
+        "city": "Boston",
+        "stage": "Group F"
       },
       {
-        "time": "20:00",
+        "matchNumber": 62,
+        "time": "15:00",
         "homeTeam": "Senegal",
         "awayTeam": "Iraq",
         "broadcaster": "ITV",
-        "stadium": "TBC"
-      }
-    ]
-  },
-  {
-    "date": "Saturday 27th June 2026",
-    "matches": [
-      {
-        "time": "01:00",
-        "homeTeam": "Cape Verde",
-        "awayTeam": "Saudi Arabia",
-        "broadcaster": "ITV",
-        "stadium": "TBC"
+        "stadium": "BMO Field",
+        "city": "Toronto",
+        "stage": "Group J"
       },
       {
-        "time": "01:00",
-        "homeTeam": "Uruguay",
-        "awayTeam": "Spain",
-        "broadcaster": "ITV",
-        "stadium": "TBC"
-      },
-      {
-        "time": "04:00",
+        "matchNumber": 63,
+        "time": "20:00",
         "homeTeam": "Egypt",
         "awayTeam": "Iran",
         "broadcaster": "BBC",
-        "stadium": "TBC"
+        "stadium": "Lumen Field",
+        "city": "Seattle",
+        "stage": "Group G"
       },
       {
-        "time": "04:00",
+        "matchNumber": 64,
+        "time": "20:00",
         "homeTeam": "New Zealand",
         "awayTeam": "Belgium",
         "broadcaster": "BBC",
-        "stadium": "TBC"
+        "stadium": "BC Place",
+        "city": "Vancouver",
+        "stage": "Group J"
       },
       {
-        "time": "22:00",
-        "homeTeam": "Croatia",
-        "awayTeam": "Ghana",
+        "matchNumber": 65,
+        "time": "19:00",
+        "homeTeam": "Cape Verde",
+        "awayTeam": "Saudi Arabia",
         "broadcaster": "ITV",
-        "stadium": "TBC"
+        "stadium": "NRG Stadium",
+        "city": "Houston",
+        "stage": "Group K"
       },
       {
-        "time": "22:00",
-        "homeTeam": "Panama",
-        "awayTeam": "England",
-        "broadcaster": "ITV1",
-        "stadium": "TBC"
+        "matchNumber": 66,
+        "time": "18:00",
+        "homeTeam": "Uruguay",
+        "awayTeam": "Spain",
+        "broadcaster": "ITV",
+        "stadium": "Estadio Akron",
+        "city": "Guadalajara",
+        "stage": "Group L"
       }
     ]
   },
   {
-    "date": "Sunday 28th June 2026",
+    "date": "27-Jun-26",
     "matches": [
       {
-        "time": "00:30",
-        "homeTeam": "Colombia",
-        "awayTeam": "Portugal",
-        "broadcaster": "BBC",
-        "stadium": "TBC"
+        "matchNumber": 67,
+        "time": "17:00",
+        "homeTeam": "Panama",
+        "awayTeam": "England",
+        "broadcaster": "ITV1",
+        "stadium": "MetLife Stadium",
+        "city": "New York/New Jersey",
+        "stage": "Group G"
       },
       {
-        "time": "00:30",
-        "homeTeam": "DR Congo",
-        "awayTeam": "Uzbekistan",
-        "broadcaster": "BBC",
-        "stadium": "TBC"
+        "matchNumber": 68,
+        "time": "17:00",
+        "homeTeam": "Croatia",
+        "awayTeam": "Ghana",
+        "broadcaster": "ITV",
+        "stadium": "Lincoln Financial Field",
+        "city": "Philadelphia",
+        "stage": "Group K"
       },
       {
-        "time": "03:00",
+        "matchNumber": 69,
+        "time": "21:00",
         "homeTeam": "Algeria",
         "awayTeam": "Austria",
         "broadcaster": "BBC",
-        "stadium": "TBC"
+        "stadium": "Arrowhead Stadium",
+        "city": "Kansas City",
+        "stage": "Group I"
       },
       {
-        "time": "03:00",
+        "matchNumber": 70,
+        "time": "21:00",
         "homeTeam": "Jordan",
         "awayTeam": "Argentina",
         "broadcaster": "BBC",
-        "stadium": "TBC"
+        "stadium": "AT&T Stadium",
+        "city": "Dallas",
+        "stage": "Group C"
+      },
+      {
+        "matchNumber": 71,
+        "time": "19:30",
+        "homeTeam": "Colombia",
+        "awayTeam": "Portugal",
+        "broadcaster": "BBC",
+        "stadium": "Hard Rock Stadium",
+        "city": "Miami",
+        "stage": "Group J"
+      },
+      {
+        "matchNumber": 72,
+        "time": "19:30",
+        "homeTeam": "Congo DR",
+        "awayTeam": "Uzbekistan",
+        "broadcaster": "BBC",
+        "stadium": "Mercedes-Benz Stadium",
+        "city": "Atlanta",
+        "stage": "Group D"
+      }
+    ]
+  },
+  {
+    "date": "28-Jun-26",
+    "matches": [
+      {
+        "matchNumber": 73,
+        "time": "12:00",
+        "homeTeam": "Group A Runners Up",
+        "awayTeam": "Group B Runners Up",
+        "broadcaster": "TBC",
+        "stadium": "SoFi Stadium",
+        "city": "Los Angeles",
+        "stage": "Round of 32"
+      }
+    ]
+  },
+  {
+    "date": "29-Jun-26",
+    "matches": [
+      {
+        "matchNumber": 74,
+        "time": "16:30",
+        "homeTeam": "Group E Winners",
+        "awayTeam": "Group A/B/C/D/F 3rd Place",
+        "broadcaster": "TBC",
+        "stadium": "Gillette Stadium",
+        "city": "Boston",
+        "stage": "Round of 32"
+      },
+      {
+        "matchNumber": 75,
+        "time": "19:00",
+        "homeTeam": "Group F Winners",
+        "awayTeam": "Group C Runners Up",
+        "broadcaster": "TBC",
+        "stadium": "Estadio BBVA",
+        "city": "Monterrey",
+        "stage": "Round of 32"
+      },
+      {
+        "matchNumber": 76,
+        "time": "12:00",
+        "homeTeam": "Group C Winners",
+        "awayTeam": "Group F Runners Up",
+        "broadcaster": "TBC",
+        "stadium": "NRG Stadium",
+        "city": "Houston",
+        "stage": "Round of 32"
+      }
+    ]
+  },
+  {
+    "date": "30-Jun-26",
+    "matches": [
+      {
+        "matchNumber": 77,
+        "time": "17:00",
+        "homeTeam": "Group I Winners",
+        "awayTeam": "Group C/D/F/G/H 3rd Place",
+        "broadcaster": "TBC",
+        "stadium": "MetLife Stadium",
+        "city": "New York/New Jersey",
+        "stage": "Round of 32"
+      },
+      {
+        "matchNumber": 78,
+        "time": "12:00",
+        "homeTeam": "Group E Runners Up",
+        "awayTeam": "Group I Runners Up",
+        "broadcaster": "TBC",
+        "stadium": "AT&T Stadium",
+        "city": "Dallas",
+        "stage": "Round of 32"
+      },
+      {
+        "matchNumber": 79,
+        "time": "19:00",
+        "homeTeam": "Group A Winners",
+        "awayTeam": "Group C/E/F/H/I 3rd Place",
+        "broadcaster": "TBC",
+        "stadium": "Estadio Azteca",
+        "city": "Mexico City",
+        "stage": "Round of 32"
+      }
+    ]
+  },
+  {
+    "date": "1-Jul-26",
+    "matches": [
+      {
+        "matchNumber": 80,
+        "time": "12:00",
+        "homeTeam": "Group L Winners",
+        "awayTeam": "Group E/H/I/J/K 3rd Place",
+        "broadcaster": "TBC",
+        "stadium": "Mercedes-Benz Stadium",
+        "city": "Atlanta",
+        "stage": "Round of 32"
+      },
+      {
+        "matchNumber": 81,
+        "time": "17:00",
+        "homeTeam": "Group D Winners",
+        "awayTeam": "Group B/E/F/I/J 3rd Place",
+        "broadcaster": "TBC",
+        "stadium": "Levi's Stadium",
+        "city": "San Francisco Bay Area",
+        "stage": "Round of 32"
+      },
+      {
+        "matchNumber": 82,
+        "time": "13:00",
+        "homeTeam": "Group G Winners",
+        "awayTeam": "Group A/E/H/I/J 3rd Place",
+        "broadcaster": "TBC",
+        "stadium": "Lumen Field",
+        "city": "Seattle",
+        "stage": "Round of 32"
+      }
+    ]
+  },
+  {
+    "date": "2-Jul-26",
+    "matches": [
+      {
+        "matchNumber": 83,
+        "time": "19:00",
+        "homeTeam": "Group K Runners Up",
+        "awayTeam": "Group L Runners Up",
+        "broadcaster": "TBC",
+        "stadium": "BMO Field",
+        "city": "Toronto",
+        "stage": "Round of 32"
+      },
+      {
+        "matchNumber": 84,
+        "time": "12:00",
+        "homeTeam": "Group H Winners",
+        "awayTeam": "Group J Runners Up",
+        "broadcaster": "TBC",
+        "stadium": "SoFi Stadium",
+        "city": "Los Angeles",
+        "stage": "Round of 32"
+      },
+      {
+        "matchNumber": 85,
+        "time": "20:00",
+        "homeTeam": "Group B Winners",
+        "awayTeam": "Group E/F/G/I/J 3rd Place",
+        "broadcaster": "TBC",
+        "stadium": "BC Place",
+        "city": "Vancouver",
+        "stage": "Round of 32"
+      }
+    ]
+  },
+  {
+    "date": "3-Jul-26",
+    "matches": [
+      {
+        "matchNumber": 86,
+        "time": "18:00",
+        "homeTeam": "Group J Winners",
+        "awayTeam": "Group H Runners Up",
+        "broadcaster": "TBC",
+        "stadium": "Hard Rock Stadium",
+        "city": "Miami",
+        "stage": "Round of 32"
+      },
+      {
+        "matchNumber": 87,
+        "time": "20:30",
+        "homeTeam": "Group K Winners",
+        "awayTeam": "Group D/E/I/J/L 3rd Place",
+        "broadcaster": "TBC",
+        "stadium": "Arrowhead Stadium",
+        "city": "Kansas City",
+        "stage": "Round of 32"
+      },
+      {
+        "matchNumber": 88,
+        "time": "13:00",
+        "homeTeam": "Group D Runners Up",
+        "awayTeam": "Group G Runners Up",
+        "broadcaster": "TBC",
+        "stadium": "AT&T Stadium",
+        "city": "Dallas",
+        "stage": "Round of 32"
+      }
+    ]
+  },
+  {
+    "date": "4-Jul-26",
+    "matches": [
+      {
+        "matchNumber": 89,
+        "time": "17:00",
+        "homeTeam": "Match 74 Winner",
+        "awayTeam": "Match 77 Winner",
+        "broadcaster": "TBC",
+        "stadium": "Lincoln Financial Field",
+        "city": "Philadelphia",
+        "stage": "Round of 16"
+      },
+      {
+        "matchNumber": 90,
+        "time": "12:00",
+        "homeTeam": "Match 73 Winner",
+        "awayTeam": "Match 75 Winner",
+        "broadcaster": "TBC",
+        "stadium": "NRG Stadium",
+        "city": "Houston",
+        "stage": "Round of 16"
+      }
+    ]
+  },
+  {
+    "date": "5-Jul-26",
+    "matches": [
+      {
+        "matchNumber": 91,
+        "time": "16:00",
+        "homeTeam": "Match 76 Winner",
+        "awayTeam": "Match 78 Winner",
+        "broadcaster": "TBC",
+        "stadium": "MetLife Stadium",
+        "city": "New York/New Jersey",
+        "stage": "Round of 16"
+      },
+      {
+        "matchNumber": 92,
+        "time": "18:00",
+        "homeTeam": "Match 79 Winner",
+        "awayTeam": "Match 80 Winner",
+        "broadcaster": "TBC",
+        "stadium": "Estadio Azteca",
+        "city": "Mexico City",
+        "stage": "Round of 16"
+      }
+    ]
+  },
+  {
+    "date": "6-Jul-26",
+    "matches": [
+      {
+        "matchNumber": 93,
+        "time": "14:00",
+        "homeTeam": "Match 83 Winner",
+        "awayTeam": "Match 84 Winner",
+        "broadcaster": "TBC",
+        "stadium": "AT&T Stadium",
+        "city": "Dallas",
+        "stage": "Round of 16"
+      },
+      {
+        "matchNumber": 94,
+        "time": "17:00",
+        "homeTeam": "Match 81 Winner",
+        "awayTeam": "Match 82 Winner",
+        "broadcaster": "TBC",
+        "stadium": "Lumen Field",
+        "city": "Seattle",
+        "stage": "Round of 16"
+      }
+    ]
+  },
+  {
+    "date": "7-Jul-26",
+    "matches": [
+      {
+        "matchNumber": 95,
+        "time": "12:00",
+        "homeTeam": "Match 86 Winner",
+        "awayTeam": "Match 88 Winner",
+        "broadcaster": "TBC",
+        "stadium": "Mercedes-Benz Stadium",
+        "city": "Atlanta",
+        "stage": "Round of 16"
+      },
+      {
+        "matchNumber": 96,
+        "time": "13:00",
+        "homeTeam": "Match 85 Winner",
+        "awayTeam": "Match 87 Winner",
+        "broadcaster": "TBC",
+        "stadium": "BC Place",
+        "city": "Vancouver",
+        "stage": "Round of 16"
+      }
+    ]
+  },
+  {
+    "date": "9-Jul-26",
+    "matches": [
+      {
+        "matchNumber": 97,
+        "time": "16:00",
+        "homeTeam": "Match 89 Winner",
+        "awayTeam": "Match 90 Winner",
+        "broadcaster": "TBC",
+        "stadium": "Gillette Stadium",
+        "city": "Boston",
+        "stage": "Quarter Final"
+      }
+    ]
+  },
+  {
+    "date": "10-Jul-26",
+    "matches": [
+      {
+        "matchNumber": 98,
+        "time": "12:00",
+        "homeTeam": "Match 93 Winner",
+        "awayTeam": "Match 94 Winner",
+        "broadcaster": "TBC",
+        "stadium": "SoFi Stadium",
+        "city": "Los Angeles",
+        "stage": "Quarter Final"
+      }
+    ]
+  },
+  {
+    "date": "11-Jul-26",
+    "matches": [
+      {
+        "matchNumber": 99,
+        "time": "17:00",
+        "homeTeam": "Match 91 Winner",
+        "awayTeam": "Match 92 Winner",
+        "broadcaster": "TBC",
+        "stadium": "Hard Rock Stadium",
+        "city": "Miami",
+        "stage": "Quarter Final"
+      },
+      {
+        "matchNumber": 100,
+        "time": "20:00",
+        "homeTeam": "Match 95 Winner",
+        "awayTeam": "Match 96 Winner",
+        "broadcaster": "TBC",
+        "stadium": "Arrowhead Stadium",
+        "city": "Kansas City",
+        "stage": "Quarter Final"
+      }
+    ]
+  },
+  {
+    "date": "14-Jul-26",
+    "matches": [
+      {
+        "matchNumber": 101,
+        "time": "14:00",
+        "homeTeam": "Match 97 Winner",
+        "awayTeam": "Match 98 Winner",
+        "broadcaster": "TBC",
+        "stadium": "AT&T Stadium",
+        "city": "Dallas",
+        "stage": "Semi Final"
+      }
+    ]
+  },
+  {
+    "date": "15-Jul-26",
+    "matches": [
+      {
+        "matchNumber": 102,
+        "time": "15:00",
+        "homeTeam": "Match 99 Winner",
+        "awayTeam": "Match 100 Winner",
+        "broadcaster": "TBC",
+        "stadium": "Mercedes-Benz Stadium",
+        "city": "Atlanta",
+        "stage": "Semi Final"
+      }
+    ]
+  },
+  {
+    "date": "18-Jul-26",
+    "matches": [
+      {
+        "matchNumber": 103,
+        "time": "17:00",
+        "homeTeam": "Match 101 Loser",
+        "awayTeam": "Match 102 Loser",
+        "broadcaster": "TBC",
+        "stadium": "Hard Rock Stadium",
+        "city": "Miami",
+        "stage": "Third Place"
+      }
+    ]
+  },
+  {
+    "date": "19-Jul-26",
+    "matches": [
+      {
+        "matchNumber": 104,
+        "time": "15:00",
+        "homeTeam": "Match 101 Winner",
+        "awayTeam": "Match 102 Winner",
+        "broadcaster": "TBC",
+        "stadium": "MetLife Stadium",
+        "city": "New York/New Jersey",
+        "stage": "Final"
       }
     ]
   }
