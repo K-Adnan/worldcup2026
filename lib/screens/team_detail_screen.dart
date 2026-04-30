@@ -18,19 +18,29 @@ class TeamDetailScreen extends StatefulWidget {
 class _TeamDetailScreenState extends State<TeamDetailScreen> {
   // Logic remains mostly the same, but we update the UI components
   late List<TeamPlayer> _squad;
-  String _sortField = 'Default Name';
+  late List<TeamPlayer> _defaultSquadOrder;
+  String _sortField = 'Default';
   bool _sortAscending = true;
 
   @override
   void initState() {
     super.initState();
-    _squad = [...?widget.team.squad];
+    _defaultSquadOrder = [...?widget.team.squad];
+    _squad = [..._defaultSquadOrder];
     _applySquadSort();
   }
 
   void _applySquadSort() {
     int compareNum(int? a, int? b) => (a ?? 9999).compareTo(b ?? 9999);
     int compareString(String a, String b) => a.toLowerCase().compareTo(b.toLowerCase());
+
+    if (_sortField == 'Default') {
+      _squad = [..._defaultSquadOrder];
+      if (!_sortAscending) {
+        _squad = _squad.reversed.toList();
+      }
+      return;
+    }
 
     _squad.sort((a, b) {
       int result;
@@ -53,7 +63,7 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
         case 'Number':
           result = compareNum(a.number, b.number);
           break;
-        case 'Default Name':
+        case 'Name':
         default:
           result = compareString(a.name, b.name);
       }
@@ -72,6 +82,10 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
             expandedHeight: 180,
             pinned: true,
             stretch: true,
+            backgroundColor: const Color(0xFF001D3D),
+            surfaceTintColor: const Color(0xFF001D3D),
+            foregroundColor: Colors.white,
+            iconTheme: const IconThemeData(color: Colors.white),
             flexibleSpace: FlexibleSpaceBar(
               centerTitle: true,
               title: Text(
@@ -89,7 +103,7 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
                   Container(color: const Color(0xFF001D3D)),
                   Center(
                     child: Opacity(
-                      opacity: 0.2,
+                      opacity: 0.8,
                       child: SvgPicture.asset(
                         roundFlagAssetForTeam(widget.team.name),
                         width: 120,
@@ -134,7 +148,8 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
                       });
                     },
                     itemBuilder: (context) => const [
-                      PopupMenuItem(value: 'Default Name', child: Text('Default Name')),
+                      PopupMenuItem(value: 'Default', child: Text('Default')),
+                      PopupMenuItem(value: 'Name', child: Text('Name')),
                       PopupMenuItem(value: 'Age', child: Text('Age')),
                       PopupMenuItem(value: 'Value', child: Text('Value')),
                       PopupMenuItem(value: 'Height', child: Text('Height')),
@@ -276,7 +291,7 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
           const Spacer(),
           Row(
             children: [
-              Text(isHome ? "vs " : "@ ", style: const TextStyle(fontSize: 12, color: Colors.grey)),
+              Text("vs ", style: const TextStyle(fontSize: 12, color: Colors.grey)),
               Expanded(
                 child: Text(
                   opponent,
@@ -304,7 +319,7 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
     final categoryColor = _positionCategoryColor(p.categoryPosition);
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.only(bottom: 6),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -331,26 +346,33 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
             overflow: TextOverflow.ellipsis,
           ),
-          subtitle: Row(
-            children: [
-              Text(
-                  p.position,
-                  style: TextStyle(color: Colors.blue[800], fontSize: 12, fontWeight: FontWeight.w500)
-              ),
-              const SizedBox(width: 8),
-              Text(
-                  "•  ${_ageInYears(p.dateOfBirth)}y",
-                  style: const TextStyle(color: Colors.grey, fontSize: 12)
-              ),
-              const SizedBox(width: 8),
-              Text(
-                  "•  ${p.caps} / ${p.goals}",
-                  style: TextStyle(color: Colors.blueGrey[400], fontSize: 11, fontWeight: FontWeight.w600)
-              ),
-              const SizedBox(width: 8),
-              _buildFootBadge(p.preferredFoot),
-            ],
-          ),
+            subtitle: Row(
+              children: [
+                // 1. Position (The "Job")
+                Text(
+                    p.position,
+                    style: TextStyle(color: Colors.blue[800], fontSize: 12, fontWeight: FontWeight.w500)
+                ),
+                const SizedBox(width: 8),
+
+                // 2. Physicals: Age & Height (Grouped to save space)
+                Text(
+                    "•  ${_ageInYears(p.dateOfBirth)}y | ${_formatHeight(p.heightCm)}",
+                    style: const TextStyle(color: Colors.grey, fontSize: 11)
+                ),
+                const SizedBox(width: 8),
+
+                Flexible(
+                  child: Text(
+                    "•  ${p.caps}/${p.goals}",
+                    style: TextStyle(color: Colors.blueGrey[400], fontSize: 11, fontWeight: FontWeight.w600),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                _buildFootBadge(p.preferredFoot),
+              ],
+            ),
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -359,9 +381,8 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
                   const Divider(height: 1, thickness: 0.5),
                   const SizedBox(height: 12),
                   _playerDetailRow("Club", p.club),
-                  _playerDetailRow("Height", _formatHeight(p.heightCm)),
                   _playerDetailRow(
-                    "Full DOB",
+                    "Date of Birth",
                     p.dateOfBirth != null
                         ? "${p.dateOfBirth!.day.toString().padLeft(2, '0')}/${p.dateOfBirth!.month.toString().padLeft(2, '0')}/${p.dateOfBirth!.year}"
                         : "-",

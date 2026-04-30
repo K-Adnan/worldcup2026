@@ -26,6 +26,18 @@ class WorldCupApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF001D3D),
+          foregroundColor: Colors.white,
+          surfaceTintColor: Color(0xFF001D3D),
+          titleTextStyle: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
+          iconTheme: IconThemeData(color: Colors.white),
+          actionsIconTheme: IconThemeData(color: Colors.white),
+        ),
       ),
       home: FutureBuilder<WorldCupData>(
         future: dataFuture ?? WorldCupDataLoader.load(),
