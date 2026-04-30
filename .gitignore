@@ -1,0 +1,34 @@
+# Flutter/Dart related
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+
+# Android related
+.gradle/
+local.properties
+*.kwks
+*.keystore
+*.jks
+gen/
+bin/
+
+# iOS/macOS related
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+**/Pods/
+DerivedData/
+Runner.xcworkspace/xcuserdata/
+
+# JSON data files (Optional)
+# If you want to keep your JSON data private, uncomment the line below
+# assets/data/*.json
+
+# IDEs
+.idea/
+.vscode/
+*.iml

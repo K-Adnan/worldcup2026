@@ -1,0 +1,596 @@
+[
+  {
+    "date": "Thursday 11th June 2026",
+    "matches": [
+      {
+        "time": "20:00",
+        "homeTeam": "Mexico",
+        "awayTeam": "South Africa",
+        "broadcaster": "ITV1",
+        "stadium": "TBC"
+      }
+    ]
+  },
+  {
+    "date": "Friday 12th June 2026",
+    "matches": [
+      {
+        "time": "03:00",
+        "homeTeam": "South Korea",
+        "awayTeam": "Czech Republic",
+        "broadcaster": "ITV",
+        "stadium": "TBC"
+      },
+      {
+        "time": "20:00",
+        "homeTeam": "Canada",
+        "awayTeam": "Bosnia-Herzegovina",
+        "broadcaster": "BBC",
+        "stadium": "TBC"
+      }
+    ]
+  },
+  {
+    "date": "Saturday 13th June 2026",
+    "matches": [
+      {
+        "time": "02:00",
+        "homeTeam": "USA",
+        "awayTeam": "Paraguay",
+        "broadcaster": "BBC",
+        "stadium": "TBC"
+      },
+      {
+        "time": "20:00",
+        "homeTeam": "Qatar",
+        "awayTeam": "Switzerland",
+        "broadcaster": "ITV",
+        "stadium": "TBC"
+      },
+      {
+        "time": "23:00",
+        "homeTeam": "Brazil",
+        "awayTeam": "Morocco",
+        "broadcaster": "BBC",
+        "stadium": "TBC"
+      }
+    ]
+  },
+  {
+    "date": "Sunday 14th June 2026",
+    "matches": [
+      {
+        "time": "02:00",
+        "homeTeam": "Haiti",
+        "awayTeam": "Scotland",
+        "broadcaster": "BBC",
+        "stadium": "TBC"
+      },
+      {
+        "time": "05:00",
+        "homeTeam": "Australia",
+        "awayTeam": "Turkey",
+        "broadcaster": "ITV",
+        "stadium": "TBC"
+      },
+      {
+        "time": "18:00",
+        "homeTeam": "Germany",
+        "awayTeam": "Curacao",
+        "broadcaster": "ITV",
+        "stadium": "TBC"
+      },
+      {
+        "time": "21:00",
+        "homeTeam": "Netherlands",
+        "awayTeam": "Japan",
+        "broadcaster": "ITV",
+        "stadium": "TBC"
+      }
+    ]
+  },
+  {
+    "date": "Monday 15th June 2026",
+    "matches": [
+      {
+        "time": "00:00",
+        "homeTeam": "Ivory Coast",
+        "awayTeam": "Ecuador",
+        "broadcaster": "BBC",
+        "stadium": "TBC"
+      },
+      {
+        "time": "03:00",
+        "homeTeam": "Sweden",
+        "awayTeam": "Tunisia",
+        "broadcaster": "ITV",
+        "stadium": "TBC"
+      },
+      {
+        "time": "17:00",
+        "homeTeam": "Spain",
+        "awayTeam": "Cape Verde",
+        "broadcaster": "ITV",
+        "stadium": "TBC"
+      },
+      {
+        "time": "20:00",
+        "homeTeam": "Belgium",
+        "awayTeam": "Egypt",
+        "broadcaster": "BBC",
+        "stadium": "TBC"
+      },
+      {
+        "time": "23:00",
+        "homeTeam": "Saudi Arabia",
+        "awayTeam": "Uruguay",
+        "broadcaster": "ITV",
+        "stadium": "TBC"
+      }
+    ]
+  },
+  {
+    "date": "Tuesday 16th June 2026",
+    "matches": [
+      {
+        "time": "02:00",
+        "homeTeam": "Iran",
+        "awayTeam": "New Zealand",
+        "broadcaster": "BBC",
+        "stadium": "TBC"
+      },
+      {
+        "time": "20:00",
+        "homeTeam": "France",
+        "awayTeam": "Senegal",
+        "broadcaster": "BBC",
+        "stadium": "TBC"
+      },
+      {
+        "time": "23:00",
+        "homeTeam": "Iraq",
+        "awayTeam": "Norway",
+        "broadcaster": "BBC",
+        "stadium": "TBC"
+      }
+    ]
+  },
+  {
+    "date": "Wednesday 17th June 2026",
+    "matches": [
+      {
+        "time": "02:00",
+        "homeTeam": "Argentina",
+        "awayTeam": "Algeria",
+        "broadcaster": "ITV",
+        "stadium": "TBC"
+      },
+      {
+        "time": "05:00",
+        "homeTeam": "Austria",
+        "awayTeam": "Jordan",
+        "broadcaster": "BBC",
+        "stadium": "TBC"
+      },
+      {
+        "time": "18:00",
+        "homeTeam": "Portugal",
+        "awayTeam": "DR Congo",
+        "broadcaster": "BBC",
+        "stadium": "TBC"
+      },
+      {
+        "time": "21:00",
+        "homeTeam": "England",
+        "awayTeam": "Croatia",
+        "broadcaster": "ITV1",
+        "stadium": "TBC"
+      }
+    ]
+  },
+  {
+    "date": "Thursday 18th June 2026",
+    "matches": [
+      {
+        "time": "00:00",
+        "homeTeam": "Ghana",
+        "awayTeam": "Panama",
+        "broadcaster": "ITV",
+        "stadium": "TBC"
+      },
+      {
+        "time": "03:00",
+        "homeTeam": "Uzbekistan",
+        "awayTeam": "Colombia",
+        "broadcaster": "BBC",
+        "stadium": "TBC"
+      },
+      {
+        "time": "17:00",
+        "homeTeam": "Czech Republic",
+        "awayTeam": "South Africa",
+        "broadcaster": "BBC",
+        "stadium": "TBC"
+      },
+      {
+        "time": "20:00",
+        "homeTeam": "Switzerland",
+        "awayTeam": "Bosnia-Herzegovina",
+        "broadcaster": "ITV",
+        "stadium": "TBC"
+      },
+      {
+        "time": "23:00",
+        "homeTeam": "Canada",
+        "awayTeam": "Qatar",
+        "broadcaster": "ITV",
+        "stadium": "TBC"
+      }
+    ]
+  },
+  {
+    "date": "Friday 19th June 2026",
+    "matches": [
+      {
+        "time": "02:00",
+        "homeTeam": "Mexico",
+        "awayTeam": "South Korea",
+        "broadcaster": "BBC",
+        "stadium": "TBC"
+      },
+      {
+        "time": "20:00",
+        "homeTeam": "USA",
+        "awayTeam": "Australia",
+        "broadcaster": "BBC",
+        "stadium": "TBC"
+      },
+      {
+        "time": "23:00",
+        "homeTeam": "Scotland",
+        "awayTeam": "Morocco",
+        "broadcaster": "ITV1",
+        "stadium": "TBC"
+      }
+    ]
+  },
+  {
+    "date": "Saturday 20th June 2026",
+    "matches": [
+      {
+        "time": "02:00",
+        "homeTeam": "Brazil",
+        "awayTeam": "Haiti",
+        "broadcaster": "ITV",
+        "stadium": "TBC"
+      },
+      {
+        "time": "05:00",
+        "homeTeam": "Turkey",
+        "awayTeam": "Paraguay",
+        "broadcaster": "ITV",
+        "stadium": "TBC"
+      },
+      {
+        "time": "18:00",
+        "homeTeam": "Netherlands",
+        "awayTeam": "Sweden",
+        "broadcaster": "BBC",
+        "stadium": "TBC"
+      },
+      {
+        "time": "21:00",
+        "homeTeam": "Germany",
+        "awayTeam": "Ivory Coast",
+        "broadcaster": "ITV",
+        "stadium": "TBC"
+      }
+    ]
+  },
+  {
+    "date": "Sunday 21st June 2026",
+    "matches": [
+      {
+        "time": "01:00",
+        "homeTeam": "Ecuador",
+        "awayTeam": "Curacao",
+        "broadcaster": "BBC",
+        "stadium": "TBC"
+      },
+      {
+        "time": "05:00",
+        "homeTeam": "Tunisia",
+        "awayTeam": "Japan",
+        "broadcaster": "BBC",
+        "stadium": "TBC"
+      },
+      {
+        "time": "17:00",
+        "homeTeam": "Spain",
+        "awayTeam": "Saudi Arabia",
+        "broadcaster": "BBC",
+        "stadium": "TBC"
+      },
+      {
+        "time": "20:00",
+        "homeTeam": "Belgium",
+        "awayTeam": "Iran",
+        "broadcaster": "ITV",
+        "stadium": "TBC"
+      },
+      {
+        "time": "23:00",
+        "homeTeam": "Uruguay",
+        "awayTeam": "Cape Verde",
+        "broadcaster": "BBC",
+        "stadium": "TBC"
+      }
+    ]
+  },
+  {
+    "date": "Monday 22nd June 2026",
+    "matches": [
+      {
+        "time": "02:00",
+        "homeTeam": "New Zealand",
+        "awayTeam": "Egypt",
+        "broadcaster": "ITV",
+        "stadium": "TBC"
+      },
+      {
+        "time": "18:00",
+        "homeTeam": "Argentina",
+        "awayTeam": "Austria",
+        "broadcaster": "BBC",
+        "stadium": "TBC"
+      },
+      {
+        "time": "22:00",
+        "homeTeam": "France",
+        "awayTeam": "Iraq",
+        "broadcaster": "BBC",
+        "stadium": "TBC"
+      }
+    ]
+  },
+  {
+    "date": "Tuesday 23rd June 2026",
+    "matches": [
+      {
+        "time": "01:00",
+        "homeTeam": "Norway",
+        "awayTeam": "Senegal",
+        "broadcaster": "ITV",
+        "stadium": "TBC"
+      },
+      {
+        "time": "04:00",
+        "homeTeam": "Jordan",
+        "awayTeam": "Algeria",
+        "broadcaster": "ITV",
+        "stadium": "TBC"
+      },
+      {
+        "time": "18:00",
+        "homeTeam": "Portugal",
+        "awayTeam": "Uzbekistan",
+        "broadcaster": "ITV",
+        "stadium": "TBC"
+      },
+      {
+        "time": "21:00",
+        "homeTeam": "England",
+        "awayTeam": "Ghana",
+        "broadcaster": "BBC One",
+        "stadium": "TBC"
+      }
+    ]
+  },
+  {
+    "date": "Wednesday 24th June 2026",
+    "matches": [
+      {
+        "time": "00:00",
+        "homeTeam": "Panama",
+        "awayTeam": "Croatia",
+        "broadcaster": "BBC",
+        "stadium": "TBC"
+      },
+      {
+        "time": "03:00",
+        "homeTeam": "Colombia",
+        "awayTeam": "DR Congo",
+        "broadcaster": "ITV",
+        "stadium": "TBC"
+      },
+      {
+        "time": "20:00",
+        "homeTeam": "Bosnia-Herzegovina",
+        "awayTeam": "Qatar",
+        "broadcaster": "ITV",
+        "stadium": "TBC"
+      },
+      {
+        "time": "20:00",
+        "homeTeam": "Switzerland",
+        "awayTeam": "Canada",
+        "broadcaster": "ITV",
+        "stadium": "TBC"
+      },
+      {
+        "time": "23:00",
+        "homeTeam": "Morocco",
+        "awayTeam": "Haiti",
+        "broadcaster": "BBC",
+        "stadium": "TBC"
+      },
+      {
+        "time": "23:00",
+        "homeTeam": "Scotland",
+        "awayTeam": "Brazil",
+        "broadcaster": "BBC",
+        "stadium": "TBC"
+      }
+    ]
+  },
+  {
+    "date": "Thursday 25th June 2026",
+    "matches": [
+      {
+        "time": "02:00",
+        "homeTeam": "Czech Republic",
+        "awayTeam": "Mexico",
+        "broadcaster": "BBC",
+        "stadium": "TBC"
+      },
+      {
+        "time": "02:00",
+        "homeTeam": "South Africa",
+        "awayTeam": "South Korea",
+        "broadcaster": "BBC",
+        "stadium": "TBC"
+      },
+      {
+        "time": "21:00",
+        "homeTeam": "Curacao",
+        "awayTeam": "Ivory Coast",
+        "broadcaster": "BBC",
+        "stadium": "TBC"
+      },
+      {
+        "time": "21:00",
+        "homeTeam": "Ecuador",
+        "awayTeam": "Germany",
+        "broadcaster": "BBC",
+        "stadium": "TBC"
+      }
+    ]
+  },
+  {
+    "date": "Friday 26th June 2026",
+    "matches": [
+      {
+        "time": "00:00",
+        "homeTeam": "Japan",
+        "awayTeam": "Sweden",
+        "broadcaster": "BBC",
+        "stadium": "TBC"
+      },
+      {
+        "time": "00:00",
+        "homeTeam": "Tunisia",
+        "awayTeam": "Netherlands",
+        "broadcaster": "BBC",
+        "stadium": "TBC"
+      },
+      {
+        "time": "03:00",
+        "homeTeam": "Paraguay",
+        "awayTeam": "Australia",
+        "broadcaster": "ITV",
+        "stadium": "TBC"
+      },
+      {
+        "time": "03:00",
+        "homeTeam": "Turkey",
+        "awayTeam": "USA",
+        "broadcaster": "ITV",
+        "stadium": "TBC"
+      },
+      {
+        "time": "20:00",
+        "homeTeam": "Norway",
+        "awayTeam": "France",
+        "broadcaster": "ITV",
+        "stadium": "TBC"
+      },
+      {
+        "time": "20:00",
+        "homeTeam": "Senegal",
+        "awayTeam": "Iraq",
+        "broadcaster": "ITV",
+        "stadium": "TBC"
+      }
+    ]
+  },
+  {
+    "date": "Saturday 27th June 2026",
+    "matches": [
+      {
+        "time": "01:00",
+        "homeTeam": "Cape Verde",
+        "awayTeam": "Saudi Arabia",
+        "broadcaster": "ITV",
+        "stadium": "TBC"
+      },
+      {
+        "time": "01:00",
+        "homeTeam": "Uruguay",
+        "awayTeam": "Spain",
+        "broadcaster": "ITV",
+        "stadium": "TBC"
+      },
+      {
+        "time": "04:00",
+        "homeTeam": "Egypt",
+        "awayTeam": "Iran",
+        "broadcaster": "BBC",
+        "stadium": "TBC"
+      },
+      {
+        "time": "04:00",
+        "homeTeam": "New Zealand",
+        "awayTeam": "Belgium",
+        "broadcaster": "BBC",
+        "stadium": "TBC"
+      },
+      {
+        "time": "22:00",
+        "homeTeam": "Croatia",
+        "awayTeam": "Ghana",
+        "broadcaster": "ITV",
+        "stadium": "TBC"
+      },
+      {
+        "time": "22:00",
+        "homeTeam": "Panama",
+        "awayTeam": "England",
+        "broadcaster": "ITV1",
+        "stadium": "TBC"
+      }
+    ]
+  },
+  {
+    "date": "Sunday 28th June 2026",
+    "matches": [
+      {
+        "time": "00:30",
+        "homeTeam": "Colombia",
+        "awayTeam": "Portugal",
+        "broadcaster": "BBC",
+        "stadium": "TBC"
+      },
+      {
+        "time": "00:30",
+        "homeTeam": "DR Congo",
+        "awayTeam": "Uzbekistan",
+        "broadcaster": "BBC",
+        "stadium": "TBC"
+      },
+      {
+        "time": "03:00",
+        "homeTeam": "Algeria",
+        "awayTeam": "Austria",
+        "broadcaster": "BBC",
+        "stadium": "TBC"
+      },
+      {
+        "time": "03:00",
+        "homeTeam": "Jordan",
+        "awayTeam": "Argentina",
+        "broadcaster": "BBC",
+        "stadium": "TBC"
+      }
+    ]
+  }
+]
