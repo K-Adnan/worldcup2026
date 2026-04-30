@@ -69,6 +69,8 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
   late WorldCupData _data;
+  final GlobalKey<ScheduleScreenState> _scheduleKey =
+      GlobalKey<ScheduleScreenState>();
 
   @override
   void initState() {
@@ -86,14 +88,63 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final scheduleState = _scheduleKey.currentState;
+    final showScheduleActions = _selectedIndex == 0;
+    final scheduleReady = scheduleState != null;
+    final isEditing = scheduleState?.isEditing ?? false;
+    final isSaving = scheduleState?.isSaving ?? false;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('FIFA World Cup 2026')),
+      appBar: AppBar(
+        title: const Text('FIFA World Cup 2026'),
+        actions: showScheduleActions
+            ? [
+                if (isEditing) ...[
+                  TextButton(
+                    onPressed: (!scheduleReady || isSaving)
+                        ? null
+                        : scheduleState.cancelEditMode,
+                    child: const Text('Cancel'),
+                  ),
+                  const SizedBox(width: 8),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: FilledButton(
+                      onPressed: (!scheduleReady || isSaving)
+                          ? null
+                          : scheduleState.saveResults,
+                      child: isSaving
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Text('Save'),
+                    ),
+                  ),
+                ] else
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: IconButton(
+                      onPressed:
+                          scheduleReady ? scheduleState.enterEditMode : null,
+                      icon: const Icon(Icons.edit_outlined),
+                      tooltip: 'Edit results',
+                    ),
+                  ),
+              ]
+            : null,
+      ),
       body: IndexedStack(
         index: _selectedIndex,
         children: [
           ScheduleScreen(
+            key: _scheduleKey,
             scheduleByDay: _data.scheduleByDay,
             onRefresh: _refreshFromFirestore,
+            onEditStateChanged: () {
+              if (mounted) setState(() {});
+            },
           ),
           TeamsScreen(teams: _data.teams),
           const TableScreen(),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
@@ -10,31 +11,49 @@ class ScheduleScreen extends StatefulWidget {
     super.key,
     required this.scheduleByDay,
     required this.onRefresh,
+    this.onEditStateChanged,
   });
 
   final List<DaySchedule> scheduleByDay;
   final Future<void> Function() onRefresh;
+  final VoidCallback? onEditStateChanged;
 
   @override
-  State<ScheduleScreen> createState() => _ScheduleScreenState();
+  State<ScheduleScreen> createState() => ScheduleScreenState();
 }
 
-class _ScheduleScreenState extends State<ScheduleScreen> {
+class ScheduleScreenState extends State<ScheduleScreen> {
   final ItemScrollController _itemScrollController = ItemScrollController();
   final ItemPositionsListener _itemPositionsListener =
       ItemPositionsListener.create();
   int _selectedDateIndex = 0;
   bool _isProgrammaticScroll = false;
+  bool _isEditing = false;
+  bool _isSaving = false;
+  final Map<int, TextEditingController> _homeScoreControllers = {};
+  final Map<int, TextEditingController> _awayScoreControllers = {};
 
   @override
   void initState() {
     super.initState();
     _itemPositionsListener.itemPositions.addListener(_syncSelectedDate);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget.onEditStateChanged?.call();
+    });
   }
+
+  bool get isEditing => _isEditing;
+  bool get isSaving => _isSaving;
 
   @override
   void dispose() {
     _itemPositionsListener.itemPositions.removeListener(_syncSelectedDate);
+    for (final controller in _homeScoreControllers.values) {
+      controller.dispose();
+    }
+    for (final controller in _awayScoreControllers.values) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
@@ -76,6 +95,105 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       _isProgrammaticScroll = false;
       _selectedDateIndex = index;
     });
+  }
+
+  void enterEditMode() {
+    for (final day in widget.scheduleByDay) {
+      for (final match in day.matches) {
+        _homeScoreControllers.putIfAbsent(
+          match.matchNumber,
+          () => TextEditingController(
+            text: match.homeScore == '-' ? '' : match.homeScore,
+          ),
+        );
+        _awayScoreControllers.putIfAbsent(
+          match.matchNumber,
+          () => TextEditingController(
+            text: match.awayScore == '-' ? '' : match.awayScore,
+          ),
+        );
+      }
+    }
+    setState(() {
+      _isEditing = true;
+    });
+    widget.onEditStateChanged?.call();
+  }
+
+  void cancelEditMode() {
+    setState(() {
+      _isEditing = false;
+    });
+    widget.onEditStateChanged?.call();
+  }
+
+  String _normalizeScoreInput(String value) {
+    final trimmed = value.trim();
+    return trimmed.isEmpty ? '-' : trimmed;
+  }
+
+  Future<void> saveResults() async {
+    setState(() {
+      _isSaving = true;
+    });
+    widget.onEditStateChanged?.call();
+
+    try {
+      final firestore = FirebaseFirestore.instance;
+      final batch = firestore.batch();
+      var updates = 0;
+
+      for (final day in widget.scheduleByDay) {
+        for (final match in day.matches) {
+          final homeController = _homeScoreControllers[match.matchNumber];
+          final awayController = _awayScoreControllers[match.matchNumber];
+          if (homeController == null || awayController == null) continue;
+
+          final homeScore = _normalizeScoreInput(homeController.text);
+          final awayScore = _normalizeScoreInput(awayController.text);
+
+          if (homeScore == match.homeScore && awayScore == match.awayScore) {
+            continue;
+          }
+
+          final docRef = firestore
+              .collection('schedule')
+              .doc(match.matchNumber.toString());
+          batch.update(docRef, {
+            'homeScore': homeScore,
+            'awayScore': awayScore,
+          });
+          updates++;
+        }
+      }
+
+      if (updates > 0) {
+        await batch.commit();
+      }
+
+      await widget.onRefresh();
+
+      if (!mounted) return;
+      setState(() {
+        _isEditing = false;
+      });
+      widget.onEditStateChanged?.call();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Results saved')),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to save results')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+        widget.onEditStateChanged?.call();
+      }
+    }
   }
 
   @override
@@ -237,9 +355,10 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           _teamSlot(
-                              match.homeTeam,
-                              isHome: true,
-                              score: match.homeScore // Pass home score here
+                            match.homeTeam,
+                            isHome: true,
+                            matchNumber: match.matchNumber,
+                            score: match.homeScore,
                           ),
 
                           // Center Info: Match Number & Time
@@ -261,9 +380,10 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                           ),
 
                           _teamSlot(
-                              match.awayTeam,
-                              isHome: false,
-                              score: match.awayScore // Pass away score here
+                            match.awayTeam,
+                            isHome: false,
+                            matchNumber: match.matchNumber,
+                            score: match.awayScore,
                           ),
                         ],
                       ),
@@ -323,8 +443,16 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     );
   }
 
-  Widget _teamSlot(String teamName, {required bool isHome, String? score}) {
+  Widget _teamSlot(
+    String teamName, {
+    required bool isHome,
+    required int matchNumber,
+    String? score,
+  }) {
     final isPlaceholder = teamName.startsWith('Group ') || teamName.startsWith('Match ');
+    final controller = isHome
+        ? _homeScoreControllers[matchNumber]
+        : _awayScoreControllers[matchNumber];
 
     return Expanded(
       child: Column(
@@ -366,15 +494,30 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           ),
           // Score Display
           const SizedBox(height: 2),
-          Text(
-            score ?? '-',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w900,
-              color: score != null ? Colors.black : Colors.grey[300],
-              height: 1,
+          if (_isEditing && !isPlaceholder && controller != null)
+            SizedBox(
+              width: 36,
+              height: 28,
+              child: TextField(
+                controller: controller,
+                keyboardType: TextInputType.number,
+                textAlign: TextAlign.center,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+            )
+          else
+            Text(
+              score ?? '-',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
+                color: score != null ? Colors.black : Colors.grey[300],
+                height: 1,
+              ),
             ),
-          ),
         ],
       ),
     );
