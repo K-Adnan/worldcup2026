@@ -30,6 +30,8 @@ class MatchFixture {
     this.city = 'TBC',
     this.homeScore = '-',
     this.awayScore = '-',
+    this.homeFormation = '4-4-2',
+    this.awayFormation = '4-4-2',
   });
 
   final int matchNumber;
@@ -43,6 +45,8 @@ class MatchFixture {
   final String city;
   final String homeScore;
   final String awayScore;
+  final String homeFormation;
+  final String awayFormation;
 
   factory MatchFixture.fromJson(Map<String, dynamic> json) {
     return MatchFixture(
@@ -57,6 +61,12 @@ class MatchFixture {
       city: json['city'] as String? ?? 'TBC',
       homeScore: json['homeScore'] as String? ?? '-',
       awayScore: json['awayScore'] as String? ?? '-',
+      homeFormation: (json['homeFormation'] as String?)?.trim().isNotEmpty == true
+          ? json['homeFormation'] as String
+          : '4-4-2',
+      awayFormation: (json['awayFormation'] as String?)?.trim().isNotEmpty == true
+          ? json['awayFormation'] as String
+          : '4-4-2',
     );
   }
 }

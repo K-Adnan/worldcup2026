@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -7,7 +8,7 @@ import '../utils/flag_asset.dart';
 import 'team_detail_screen.dart';
 import 'widgets/match_pitch.dart';
 
-class MatchCenterScreen extends StatelessWidget {
+class MatchCenterScreen extends StatefulWidget {
   const MatchCenterScreen({
     super.key,
     required this.match,
@@ -18,91 +19,147 @@ class MatchCenterScreen extends StatelessWidget {
   final List<TeamInfo> teams;
 
   @override
+  State<MatchCenterScreen> createState() => _MatchCenterScreenState();
+}
+
+class _MatchCenterScreenState extends State<MatchCenterScreen> {
+  late final Future<MatchFixture> _matchFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _matchFuture = _loadLatestMatch();
+  }
+
+  Future<MatchFixture> _loadLatestMatch() async {
+    final doc = await FirebaseFirestore.instance
+        .collection('schedule')
+        .doc(widget.match.matchNumber.toString())
+        .get();
+    if (!doc.exists) return widget.match;
+    final data = doc.data();
+    if (data == null) return widget.match;
+    return MatchFixture.fromJson(data);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF001D3D), // Deep midnight blue
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
-        title: Text(
-          match.stage.toUpperCase(),
-          style: GoogleFonts.bebasNeue(
-            letterSpacing: 2,
-            fontSize: 24,
-            color: Colors.white,
-          ),
-        ),
-      ),
-      body: Column(
-        children: [
-          _buildHeroScoreboard(context),
-          Expanded(
-            child: Container(
-              width: double.infinity,
-              decoration: const BoxDecoration(
-                color: Color(0xFFF5F7F9),
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(32),
-                  topRight: Radius.circular(32),
-                ),
-              ),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final pitchHeight = (constraints.maxHeight - 48).clamp(320.0, 1200.0);
-                  return SingleChildScrollView(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _sectionLabel('MATCH INFO'),
-                        const SizedBox(height: 16),
-                        _detailTile(
-                          Icons.calendar_today_rounded,
-                          'Date & Kickoff',
-                          '${_stripYearFromDate(match.date)} • ${match.time}',
-                        ),
-                        _detailTile(
-                          Icons.location_on_rounded,
-                          'Stadium & City',
-                          '${match.stadium}, ${match.city}',
-                        ),
-                        _detailTile(
-                          Icons.tv_rounded,
-                          'Official Broadcaster',
-                          match.broadcaster,
-                        ),
-                        const SizedBox(height: 12),
-                        MatchPitch(
-                          height: pitchHeight,
-                        ),
-                      ],
-                    ),
-                  );
-                },
+    return FutureBuilder<MatchFixture>(
+      future: _matchFuture,
+      builder: (context, snapshot) {
+        final match = snapshot.data ?? widget.match;
+        final loading = snapshot.connectionState == ConnectionState.waiting &&
+            !snapshot.hasData;
+
+        return Scaffold(
+          backgroundColor: const Color(0xFF001D3D),
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            iconTheme: const IconThemeData(color: Colors.white),
+            title: Text(
+              match.stage.toUpperCase(),
+              style: GoogleFonts.bebasNeue(
+                letterSpacing: 2,
+                fontSize: 24,
+                color: Colors.white,
               ),
             ),
+            actions: [
+              if (loading)
+                const Padding(
+                  padding: EdgeInsets.only(right: 16),
+                  child: Center(
+                    child: SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white70,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           ),
-        ],
-      ),
+          body: Column(
+            children: [
+              _buildHeroScoreboard(context, match),
+              Expanded(
+                child: Container(
+                  width: double.infinity,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFF5F7F9),
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(32),
+                      topRight: Radius.circular(32),
+                    ),
+                  ),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final pitchHeight =
+                          (constraints.maxHeight - 48).clamp(320.0, 1200.0);
+                      return SingleChildScrollView(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _sectionLabel('MATCH INFO'),
+                            const SizedBox(height: 16),
+                            _detailTile(
+                              Icons.calendar_today_rounded,
+                              'Date & Kickoff',
+                              '${_stripYearFromDate(match.date)} • ${match.time}',
+                            ),
+                            _detailTile(
+                              Icons.location_on_rounded,
+                              'Stadium & City',
+                              '${match.stadium}, ${match.city}',
+                            ),
+                            _detailTile(
+                              Icons.tv_rounded,
+                              'Official Broadcaster',
+                              match.broadcaster,
+                            ),
+                            const SizedBox(height: 12),
+                            MatchPitch(
+                              key: ValueKey<String>(
+                                '${match.matchNumber}-${match.homeFormation}-${match.awayFormation}',
+                              ),
+                              height: pitchHeight,
+                              matchNumber: match.matchNumber,
+                              initialHomeFormation: match.homeFormation,
+                              initialAwayFormation: match.awayFormation,
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildHeroScoreboard(BuildContext context) {
+  Widget _buildHeroScoreboard(BuildContext context, MatchFixture match) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _heroTeam(context, match.homeTeam, isHome: true),
-          _heroScoreDisplay(),
-          _heroTeam(context, match.awayTeam, isHome: false),
+          _heroTeam(context, match.homeTeam),
+          _heroScoreDisplay(match),
+          _heroTeam(context, match.awayTeam),
         ],
       ),
     );
   }
 
-  Widget _heroTeam(BuildContext context, String teamName, {required bool isHome}) {
+  Widget _heroTeam(BuildContext context, String teamName) {
     final isPlaceholder = teamName.startsWith('Group ') ||
         teamName.startsWith('Match ') ||
         RegExp(r'^[A-L]-[123]$').hasMatch(teamName.toUpperCase()) ||
@@ -176,7 +233,7 @@ class MatchCenterScreen extends StatelessWidget {
     );
   }
 
-  Widget _heroScoreDisplay() {
+  Widget _heroScoreDisplay(MatchFixture match) {
     final homeScore = match.homeScore.trim().isEmpty ? '-' : match.homeScore;
     final awayScore = match.awayScore.trim().isEmpty ? '-' : match.awayScore;
 
@@ -188,7 +245,7 @@ class MatchCenterScreen extends StatelessWidget {
             '$homeScore : $awayScore',
             style: GoogleFonts.bebasNeue(
               fontSize: 64,
-              color: const Color(0xFFFEC20C), // Bright Gold
+              color: const Color(0xFFFEC20C),
               letterSpacing: 4,
             ),
           ),
@@ -200,7 +257,11 @@ class MatchCenterScreen extends StatelessWidget {
             ),
             child: Text(
               'MATCH ${match.matchNumber}',
-              style: const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                color: Colors.white70,
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           )
         ],
@@ -257,7 +318,7 @@ class MatchCenterScreen extends StatelessWidget {
 
   TeamInfo? _findTeamByName(String teamName) {
     final normalizedTarget = _normalizeTeamName(teamName);
-    for (final team in teams) {
+    for (final team in widget.teams) {
       if (_normalizeTeamName(team.name) == normalizedTarget) {
         return team;
       }

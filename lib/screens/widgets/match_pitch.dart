@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 const List<String> kFormationOptions = [
@@ -19,17 +20,69 @@ class MatchPitch extends StatefulWidget {
   const MatchPitch({
     super.key,
     required this.height,
+    required this.matchNumber,
+    required this.initialHomeFormation,
+    required this.initialAwayFormation,
   });
 
   final double height;
+  final int matchNumber;
+  final String initialHomeFormation;
+  final String initialAwayFormation;
 
   @override
   State<MatchPitch> createState() => _MatchPitchState();
 }
 
 class _MatchPitchState extends State<MatchPitch> {
-  String _homeFormation = '4-4-2';
-  String _awayFormation = '4-4-2';
+  late String _homeFormation;
+  late String _awayFormation;
+
+  @override
+  void initState() {
+    super.initState();
+    _homeFormation = _coerceFormation(widget.initialHomeFormation);
+    _awayFormation = _coerceFormation(widget.initialAwayFormation);
+  }
+
+  @override
+  void didUpdateWidget(covariant MatchPitch oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.matchNumber != widget.matchNumber) {
+      _homeFormation = _coerceFormation(widget.initialHomeFormation);
+      _awayFormation = _coerceFormation(widget.initialAwayFormation);
+    } else {
+      if (oldWidget.initialHomeFormation != widget.initialHomeFormation) {
+        _homeFormation = _coerceFormation(widget.initialHomeFormation);
+      }
+      if (oldWidget.initialAwayFormation != widget.initialAwayFormation) {
+        _awayFormation = _coerceFormation(widget.initialAwayFormation);
+      }
+    }
+  }
+
+  String _coerceFormation(String value) {
+    final v = value.trim();
+    if (v.isEmpty || !kFormationOptions.contains(v)) {
+      return '4-4-2';
+    }
+    return v;
+  }
+
+  Future<void> _persistFormation({required bool home, required String formation}) async {
+    final field = home ? 'homeFormation' : 'awayFormation';
+    try {
+      await FirebaseFirestore.instance
+          .collection('schedule')
+          .doc(widget.matchNumber.toString())
+          .update({field: formation});
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not save formation')),
+      );
+    }
+  }
 
   static List<int> _parseFormation(String label) {
     return label.split('-').map((s) => int.tryParse(s.trim()) ?? 0).where((n) => n > 0).toList();
@@ -162,7 +215,7 @@ class _MatchPitchState extends State<MatchPitch> {
           items: kFormationOptions
               .map((f) => DropdownMenuItem(value: f, child: Text(f)))
               .toList(),
-          onChanged: (v) {
+          onChanged: (v) async {
             if (v == null) return;
             setState(() {
               if (isHome) {
@@ -171,6 +224,7 @@ class _MatchPitchState extends State<MatchPitch> {
                 _awayFormation = v;
               }
             });
+            await _persistFormation(home: isHome, formation: v);
           },
         ),
       ),
