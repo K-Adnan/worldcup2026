@@ -1,6 +1,4 @@
-import 'dart:convert';
-
-import 'package:flutter/services.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class DaySchedule {
   const DaySchedule({required this.date, required this.matches});
@@ -22,6 +20,7 @@ class DaySchedule {
 class MatchFixture {
   const MatchFixture({
     required this.matchNumber,
+    required this.date,
     required this.time,
     required this.homeTeam,
     required this.awayTeam,
@@ -29,9 +28,12 @@ class MatchFixture {
     required this.stage,
     this.stadium = 'TBC',
     this.city = 'TBC',
+    this.homeScore = '-',
+    this.awayScore = '-',
   });
 
   final int matchNumber;
+  final String date;
   final String time;
   final String homeTeam;
   final String awayTeam;
@@ -39,10 +41,13 @@ class MatchFixture {
   final String stage;
   final String stadium;
   final String city;
+  final String homeScore;
+  final String awayScore;
 
   factory MatchFixture.fromJson(Map<String, dynamic> json) {
     return MatchFixture(
       matchNumber: json['matchNumber'] as int? ?? 0,
+      date: json['date'] as String? ?? '',
       time: json['time'] as String? ?? '',
       homeTeam: json['homeTeam'] as String? ?? '',
       awayTeam: json['awayTeam'] as String? ?? '',
@@ -50,6 +55,8 @@ class MatchFixture {
       stage: json['stage'] as String? ?? 'TBC',
       stadium: json['stadium'] as String? ?? 'TBC',
       city: json['city'] as String? ?? 'TBC',
+      homeScore: json['homeScore'] as String? ?? '-',
+      awayScore: json['awayScore'] as String? ?? '-',
     );
   }
 }
@@ -79,21 +86,36 @@ class WorldCupData {
 
 class WorldCupDataLoader {
   static Future<WorldCupData> load() async {
-    final scheduleSource = await rootBundle.loadString(
-      'assets/data/schedule.json',
-    );
-    final teamsSource = await rootBundle.loadString('assets/data/teams.json');
+    final teamsSnapshot = await FirebaseFirestore.instance
+        .collection('teams')
+        .orderBy('name')
+        .get();
 
-    final scheduleList = jsonDecode(scheduleSource) as List<dynamic>;
-    final teamsList = jsonDecode(teamsSource) as List<dynamic>;
+    final scheduleSnapshot = await FirebaseFirestore.instance
+        .collection('schedule')
+        .orderBy('matchNumber')
+        .get();
+
+    final teams = teamsSnapshot.docs
+        .map((doc) => TeamInfo.fromJson(doc.data()))
+        .toList();
+
+    final matches = scheduleSnapshot.docs
+        .map((doc) => MatchFixture.fromJson(doc.data()))
+        .toList();
+
+    final grouped = <String, List<MatchFixture>>{};
+    for (final match in matches) {
+      grouped.putIfAbsent(match.date, () => <MatchFixture>[]).add(match);
+    }
+
+    final scheduleByDay = grouped.entries
+        .map((entry) => DaySchedule(date: entry.key, matches: entry.value))
+        .toList();
 
     return WorldCupData(
-      scheduleByDay: scheduleList
-          .map((item) => DaySchedule.fromJson(item as Map<String, dynamic>))
-          .toList(),
-      teams: teamsList
-          .map((item) => TeamInfo.fromJson(item as Map<String, dynamic>))
-          .toList(),
+      scheduleByDay: scheduleByDay,
+      teams: teams,
     );
   }
 }

@@ -1,16 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 import 'data/world_cup_data.dart';
+import 'firebase_options.dart';
 import 'screens/schedule_screen.dart';
 import 'screens/table_screen.dart';
 import 'screens/teams_screen.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const WorldCupApp());
 }
 
 class WorldCupApp extends StatelessWidget {
-  const WorldCupApp({super.key});
+  const WorldCupApp({super.key, this.dataFuture});
+
+  final Future<WorldCupData>? dataFuture;
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +28,7 @@ class WorldCupApp extends StatelessWidget {
         useMaterial3: true,
       ),
       home: FutureBuilder<WorldCupData>(
-        future: WorldCupDataLoader.load(),
+        future: dataFuture ?? WorldCupDataLoader.load(),
         builder: (context, snapshot) {
           if (snapshot.connectionState != ConnectionState.done) {
             return const Scaffold(
@@ -36,7 +42,7 @@ class WorldCupApp extends StatelessWidget {
                 child: Padding(
                   padding: EdgeInsets.all(24),
                   child: Text(
-                    'Failed to load World Cup data from JSON.',
+                    'Failed to load World Cup data from Firestore.',
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -62,6 +68,21 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
+  late WorldCupData _data;
+
+  @override
+  void initState() {
+    super.initState();
+    _data = widget.data;
+  }
+
+  Future<void> _refreshFromFirestore() async {
+    final freshData = await WorldCupDataLoader.load();
+    if (!mounted) return;
+    setState(() {
+      _data = freshData;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -70,8 +91,11 @@ class _HomeScreenState extends State<HomeScreen> {
       body: IndexedStack(
         index: _selectedIndex,
         children: [
-          ScheduleScreen(scheduleByDay: widget.data.scheduleByDay),
-          TeamsScreen(teams: widget.data.teams),
+          ScheduleScreen(
+            scheduleByDay: _data.scheduleByDay,
+            onRefresh: _refreshFromFirestore,
+          ),
+          TeamsScreen(teams: _data.teams),
           const TableScreen(),
         ],
       ),
