@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../data/world_cup_data.dart';
 import '../utils/flag_asset.dart';
 import 'team_detail_screen.dart';
+import 'widgets/match_pitch.dart';
 
 class MatchCenterScreen extends StatelessWidget {
   const MatchCenterScreen({
@@ -46,30 +47,37 @@ class MatchCenterScreen extends StatelessWidget {
                   topRight: Radius.circular(32),
                 ),
               ),
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _sectionLabel('MATCH INFO'),
-                    const SizedBox(height: 16),
-                    _detailTile(
-                      Icons.calendar_today_rounded,
-                      'Date & Kickoff',
-                      '${_stripYearFromDate(match.date)} • ${match.time}',
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final pitchHeight = (constraints.maxHeight - 48).clamp(320.0, 1200.0);
+                  return SingleChildScrollView(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _sectionLabel('MATCH INFO'),
+                        const SizedBox(height: 16),
+                        _detailTile(
+                          Icons.calendar_today_rounded,
+                          'Date & Kickoff',
+                          '${_stripYearFromDate(match.date)} • ${match.time}',
+                        ),
+                        _detailTile(
+                          Icons.location_on_rounded,
+                          'Stadium & City',
+                          '${match.stadium}, ${match.city}',
+                        ),
+                        _detailTile(
+                          Icons.tv_rounded,
+                          'Official Broadcaster',
+                          match.broadcaster,
+                        ),
+                        const SizedBox(height: 12),
+                        MatchPitch(height: pitchHeight),
+                      ],
                     ),
-                    _detailTile(
-                      Icons.location_on_rounded,
-                      'Stadium & City',
-                      '${match.stadium}, ${match.city}',
-                    ),
-                    _detailTile(
-                      Icons.tv_rounded,
-                      'Official Broadcaster',
-                      match.broadcaster,
-                    ),
-                  ],
-                ),
+                  );
+                },
               ),
             ),
           ),
