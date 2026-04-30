@@ -153,6 +153,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ScheduleScreen(
             key: _scheduleKey,
             scheduleByDay: _data.scheduleByDay,
+            teams: _data.teams,
             onRefresh: _refreshFromFirestore,
             onEditStateChanged: () {
               if (mounted) setState(() {});

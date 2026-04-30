@@ -62,12 +62,13 @@ class MatchFixture {
 }
 
 class TeamInfo {
-  const TeamInfo(this.name, {this.note, this.group, this.squad});
+  const TeamInfo(this.name, {this.note, this.group, this.squad, this.coach});
 
   final String name;
   final String? note;
   final String? group;
   final List<TeamPlayer>? squad;
+  final TeamCoach? coach;
 
   factory TeamInfo.fromJson(Map<String, dynamic> json) {
     return TeamInfo(
@@ -77,6 +78,32 @@ class TeamInfo {
       squad: (json['squad'] as List<dynamic>?)
           ?.map((item) => TeamPlayer.fromJson(item as Map<String, dynamic>))
           .toList(),
+      coach: json['coach'] is Map<String, dynamic>
+          ? TeamCoach.fromJson(json['coach'] as Map<String, dynamic>)
+          : null,
+    );
+  }
+}
+
+class TeamCoach {
+  const TeamCoach({
+    required this.name,
+    required this.since,
+    required this.previousRole,
+    required this.nationality,
+  });
+
+  final String name;
+  final String since;
+  final String previousRole;
+  final String nationality;
+
+  factory TeamCoach.fromJson(Map<String, dynamic> json) {
+    return TeamCoach(
+      name: json['name'] as String? ?? '',
+      since: json['since'] as String? ?? '',
+      previousRole: json['previousRole'] as String? ?? '',
+      nationality: json['nationality'] as String? ?? '',
     );
   }
 }

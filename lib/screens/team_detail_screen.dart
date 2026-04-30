@@ -129,6 +129,16 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
           ),
           _buildMatchListSliver(),
 
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+              child: Text("COACH", style: _sectionHeaderStyle()),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: _buildCoachCard(),
+          ),
+
           // 4. SQUAD LIST SECTION
           SliverToBoxAdapter(
             child: Padding(
@@ -269,6 +279,98 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
         );
       },
     );
+  }
+
+  Widget _buildCoachCard() {
+    final coach = widget.team.coach;
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.blueGrey.withValues(alpha: 0.1)),
+      ),
+      child: coach == null
+          ? const Text(
+              'Coach information not available.',
+              style: TextStyle(color: Colors.grey),
+            )
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  coach.name,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _playerDetailRow('In charge', coach.since),
+                _playerDetailRow('Previous role', coach.previousRole),
+                _coachNationalityRow(coach.nationality),
+              ],
+            ),
+    );
+  }
+
+  Widget _coachNationalityRow(String nationality) {
+    final flagTeamName = _nationalityToFlagTeamName(nationality);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Text(
+            'Nationality',
+            style: TextStyle(color: Colors.grey, fontSize: 13),
+          ),
+          Flexible(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: 18,
+                  height: 12,
+                  child: Image.asset(
+                    flagAssetForTeam(flagTeamName),
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) =>
+                        const Icon(Icons.flag_outlined, size: 12),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Text(
+                    nationality,
+                    textAlign: TextAlign.right,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _nationalityToFlagTeamName(String nationality) {
+    final trimmed = nationality.trim();
+    if (trimmed.isEmpty) return nationality;
+    final beforeParens = trimmed.split('(').first.trim();
+    final primary = beforeParens.split('/').first.trim();
+    const aliases = <String, String>{
+      'Bosnia': 'Bosnia & Herzegovina',
+      'Czechia': 'Czech Republic',
+      'UK': 'England',
+      'Ivory Coast': 'Ivory Coast',
+    };
+    return aliases[primary] ?? primary;
   }
 
   Widget _buildCompactMatchCard(MatchFixture m) {

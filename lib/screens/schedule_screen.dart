@@ -4,17 +4,20 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 import '../data/world_cup_data.dart';
+import 'team_detail_screen.dart';
 import '../utils/flag_asset.dart';
 
 class ScheduleScreen extends StatefulWidget {
   const ScheduleScreen({
     super.key,
     required this.scheduleByDay,
+    required this.teams,
     required this.onRefresh,
     this.onEditStateChanged,
   });
 
   final List<DaySchedule> scheduleByDay;
+  final List<TeamInfo> teams;
   final Future<void> Function() onRefresh;
   final VoidCallback? onEditStateChanged;
 
@@ -23,6 +26,7 @@ class ScheduleScreen extends StatefulWidget {
 }
 
 class ScheduleScreenState extends State<ScheduleScreen> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final ItemScrollController _itemScrollController = ItemScrollController();
   final ItemPositionsListener _itemPositionsListener =
       ItemPositionsListener.create();
@@ -32,6 +36,10 @@ class ScheduleScreenState extends State<ScheduleScreen> {
   bool _isSaving = false;
   final Map<int, TextEditingController> _homeScoreControllers = {};
   final Map<int, TextEditingController> _awayScoreControllers = {};
+  final Set<String> _selectedGroups = <String>{};
+  final Set<String> _selectedCities = <String>{};
+  final Set<String> _selectedTimes = <String>{};
+  final Set<String> _selectedBroadcasters = <String>{};
 
   @override
   void initState() {
@@ -94,6 +102,168 @@ class ScheduleScreenState extends State<ScheduleScreen> {
     setState(() {
       _isProgrammaticScroll = false;
       _selectedDateIndex = index;
+    });
+  }
+
+  Map<String, String> get _teamToGroup {
+    final map = <String, String>{};
+    for (final team in widget.teams) {
+      final group = team.group?.trim() ?? '';
+      if (group.isNotEmpty) {
+        map[team.name] = group;
+      }
+    }
+    return map;
+  }
+
+  List<String> get _availableGroups {
+    final groupSet = <String>{};
+    for (final team in widget.teams) {
+      final group = team.group?.trim() ?? '';
+      if (group.isNotEmpty) {
+        groupSet.add(group);
+      }
+    }
+    final groups = groupSet.toList()..sort();
+    return groups;
+  }
+
+  List<String> get _availableCities {
+    final cities = <String>{};
+    for (final day in widget.scheduleByDay) {
+      for (final match in day.matches) {
+        final city = match.city.trim();
+        if (city.isNotEmpty) {
+          cities.add(city);
+        }
+      }
+    }
+    final values = cities.toList()..sort();
+    return values;
+  }
+
+  Map<String, List<String>> get _citiesByCountry {
+    const canadianCities = {'Toronto', 'Vancouver'};
+    const mexicanCities = {'Guadalajara', 'Mexico City', 'Monterrey'};
+
+    final canada = <String>[];
+    final mexico = <String>[];
+    final usa = <String>[];
+
+    for (final city in _availableCities) {
+      if (canadianCities.contains(city)) {
+        canada.add(city);
+      } else if (mexicanCities.contains(city)) {
+        mexico.add(city);
+      } else {
+        usa.add(city);
+      }
+    }
+
+    return {
+      'Canada': canada,
+      'Mexico': mexico,
+      'USA': usa,
+    };
+  }
+
+  List<String> get _availableTimes {
+    final times = <String>{};
+    for (final day in widget.scheduleByDay) {
+      for (final match in day.matches) {
+        final time = match.time.trim();
+        if (time.isNotEmpty) {
+          times.add(time);
+        }
+      }
+    }
+    final values = times.toList()..sort();
+    return values;
+  }
+
+  List<String> get _availableBroadcasters {
+    final broadcasters = <String>{};
+    for (final day in widget.scheduleByDay) {
+      for (final match in day.matches) {
+        final broadcaster = match.broadcaster.trim();
+        if (broadcaster.isNotEmpty) {
+          broadcasters.add(broadcaster);
+        }
+      }
+    }
+    final values = broadcasters.toList()..sort();
+    return values;
+  }
+
+  List<DaySchedule> get _filteredScheduleByDay {
+    final filteredDays = <DaySchedule>[];
+    for (final day in widget.scheduleByDay) {
+      final matches = day.matches.where(_matchPassesFilters).toList();
+      if (matches.isNotEmpty) {
+        filteredDays.add(DaySchedule(date: day.date, matches: matches));
+      }
+    }
+    return filteredDays;
+  }
+
+  bool _matchPassesFilters(MatchFixture match) {
+    if (_selectedGroups.isNotEmpty && !_matchBelongsToSelectedGroups(match)) {
+      return false;
+    }
+    if (_selectedCities.isNotEmpty && !_selectedCities.contains(match.city)) {
+      return false;
+    }
+    if (_selectedTimes.isNotEmpty && !_selectedTimes.contains(match.time)) {
+      return false;
+    }
+    if (_selectedBroadcasters.isNotEmpty &&
+        !_selectedBroadcasters.contains(match.broadcaster)) {
+      return false;
+    }
+    return true;
+  }
+
+  bool _matchBelongsToSelectedGroups(MatchFixture match) {
+    final teamToGroup = _teamToGroup;
+    final homeGroup = _resolveTeamGroup(match.homeTeam, teamToGroup);
+    final awayGroup = _resolveTeamGroup(match.awayTeam, teamToGroup);
+    if (homeGroup != null && _selectedGroups.contains(homeGroup)) {
+      return true;
+    }
+    if (awayGroup != null && _selectedGroups.contains(awayGroup)) {
+      return true;
+    }
+    return false;
+  }
+
+  String? _resolveTeamGroup(String teamName, Map<String, String> teamToGroup) {
+    final direct = teamToGroup[teamName];
+    if (direct != null && direct.isNotEmpty) return direct;
+    final tokenMatch = RegExp(r'([A-L])-[123]').firstMatch(teamName.toUpperCase());
+    if (tokenMatch != null) {
+      return 'Group ${tokenMatch.group(1)}';
+    }
+    return null;
+  }
+
+  void _toggleFilter(Set<String> selectedSet, String value, bool isSelected) {
+    setState(() {
+      if (isSelected) {
+        selectedSet.add(value);
+      } else {
+        selectedSet.remove(value);
+      }
+      _selectedDateIndex = 0;
+    });
+  }
+
+  void _clearAllFilters() {
+    setState(() {
+      _selectedGroups.clear();
+      _selectedCities.clear();
+      _selectedTimes.clear();
+      _selectedBroadcasters.clear();
+      _selectedDateIndex = 0;
     });
   }
 
@@ -198,71 +368,130 @@ class ScheduleScreenState extends State<ScheduleScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final filteredScheduleByDay = _filteredScheduleByDay;
+    final filteredMatchCount = filteredScheduleByDay.fold<int>(
+      0,
+      (total, day) => total + day.matches.length,
+    );
+    final hasActiveFilters = _selectedGroups.isNotEmpty ||
+        _selectedCities.isNotEmpty ||
+        _selectedTimes.isNotEmpty ||
+        _selectedBroadcasters.isNotEmpty;
+    if (_selectedDateIndex >= filteredScheduleByDay.length) {
+      _selectedDateIndex = filteredScheduleByDay.isEmpty
+          ? 0
+          : filteredScheduleByDay.length - 1;
+    }
+
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: const Color(0xFFF5F7F9), // Light grey background
+      endDrawer: _buildFilterDrawer(context),
       body: Column(
         children: [
           SizedBox(
             height: 74,
-            child: ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              scrollDirection: Axis.horizontal,
-              itemCount: widget.scheduleByDay.length,
-              separatorBuilder: (_, _) => const SizedBox(width: 8),
-              itemBuilder: (context, index) {
-                final day = widget.scheduleByDay[index];
-                final isSelected = index == _selectedDateIndex;
-                final chipParts = _dateChipParts(day.date);
-                return ChoiceChip(
-                  label: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(
-                        chipParts.$1,
-                        style: const TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          height: 1.0,
+            child: Row(
+              children: [
+                Expanded(
+                  child: ListView.separated(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    scrollDirection: Axis.horizontal,
+                    itemCount: filteredScheduleByDay.length,
+                    separatorBuilder: (_, _) => const SizedBox(width: 8),
+                    itemBuilder: (context, index) {
+                      final day = filteredScheduleByDay[index];
+                      final isSelected = index == _selectedDateIndex;
+                      final chipParts = _dateChipParts(day.date);
+                      return ChoiceChip(
+                        label: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                              chipParts.$1,
+                              style: const TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                height: 1.0,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              chipParts.$2,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                height: 1.0,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              chipParts.$3,
+                              style: const TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w500,
+                                height: 1.0,
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        chipParts.$2,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          height: 1.0,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        chipParts.$3,
-                        style: const TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w500,
-                          height: 1.0,
-                        ),
-                      ),
-                    ],
+                        selected: isSelected,
+                        onSelected: (_) => _jumpToDate(index),
+                      );
+                    },
                   ),
-                  selected: isSelected,
-                  onSelected: (_) => _jumpToDate(index),
-                );
-              },
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: Badge(
+                    isLabelVisible: hasActiveFilters,
+                    child: IconButton(
+                      icon: const Icon(Icons.filter_alt_outlined),
+                      tooltip: 'Filters',
+                      onPressed: () => _scaffoldKey.currentState?.openEndDrawer(),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
+          if (hasActiveFilters)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  '$filteredMatchCount result${filteredMatchCount == 1 ? '' : 's'} found',
+                  style: TextStyle(
+                    color: Colors.blueGrey[700],
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
           Expanded(
             child: RefreshIndicator(
               onRefresh: widget.onRefresh,
-              child: ScrollablePositionedList.builder(
+              child: filteredScheduleByDay.isEmpty
+                  ? ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: const [
+                        SizedBox(height: 120),
+                        Center(
+                          child: Text('No matches found for selected filters'),
+                        ),
+                      ],
+                    )
+                  : ScrollablePositionedList.builder(
                 itemScrollController: _itemScrollController,
                 itemPositionsListener: _itemPositionsListener,
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                itemCount: widget.scheduleByDay.length,
+                itemCount: filteredScheduleByDay.length,
                 itemBuilder: (context, dayIndex) {
-                  final daySchedule = widget.scheduleByDay[dayIndex];
+                  final daySchedule = filteredScheduleByDay[dayIndex];
 
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -291,6 +520,113 @@ class ScheduleScreenState extends State<ScheduleScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildFilterDrawer(BuildContext context) {
+    return Drawer(
+      child: SafeArea(
+        child: Column(
+          children: [
+            ListTile(
+              title: const Text(
+                'Filter Matches',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+              ),
+              trailing: TextButton(
+                onPressed: _clearAllFilters,
+                child: const Text('Clear'),
+              ),
+            ),
+            const Divider(height: 1),
+            Expanded(
+              child: ListView(
+                children: [
+                  _multiSelectSection(
+                    title: 'Group',
+                    options: _availableGroups,
+                    selected: _selectedGroups,
+                  ),
+                  _cityMultiSelectSection(),
+                  _multiSelectSection(
+                    title: 'Time',
+                    options: _availableTimes,
+                    selected: _selectedTimes,
+                  ),
+                  _multiSelectSection(
+                    title: 'Broadcaster',
+                    options: _availableBroadcasters,
+                    selected: _selectedBroadcasters,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _cityMultiSelectSection() {
+    final groupedCities = _citiesByCountry;
+    const countries = ['Canada', 'Mexico', 'USA'];
+
+    return ExpansionTile(
+      title: const Text('City'),
+      subtitle: _selectedCities.isEmpty
+          ? const Text('All')
+          : Text('${_selectedCities.length} selected'),
+      children: [
+        for (var i = 0; i < countries.length; i++) ...[
+          if (i > 0) const Divider(height: 16, thickness: 0.6),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 6, 16, 4),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                countries[i],
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.blueGrey,
+                ),
+              ),
+            ),
+          ),
+          ...groupedCities[countries[i]]!.map(
+            (city) => CheckboxListTile(
+              value: _selectedCities.contains(city),
+              dense: true,
+              controlAffinity: ListTileControlAffinity.leading,
+              title: Text(city),
+              onChanged: (checked) =>
+                  _toggleFilter(_selectedCities, city, checked ?? false),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _multiSelectSection({
+    required String title,
+    required List<String> options,
+    required Set<String> selected,
+  }) {
+    return ExpansionTile(
+      title: Text(title),
+      subtitle: selected.isEmpty ? const Text('All') : Text('${selected.length} selected'),
+      children: options
+          .map(
+            (option) => CheckboxListTile(
+              value: selected.contains(option),
+              dense: true,
+              controlAffinity: ListTileControlAffinity.leading,
+              title: Text(option),
+              onChanged: (checked) => _toggleFilter(selected, option, checked ?? false),
+            ),
+          )
+          .toList(),
     );
   }
 
@@ -355,6 +691,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           _teamSlot(
+                            context,
                             match.homeTeam,
                             isHome: true,
                             matchNumber: match.matchNumber,
@@ -380,6 +717,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                           ),
 
                           _teamSlot(
+                            context,
                             match.awayTeam,
                             isHome: false,
                             matchNumber: match.matchNumber,
@@ -444,53 +782,82 @@ class ScheduleScreenState extends State<ScheduleScreen> {
   }
 
   Widget _teamSlot(
+    BuildContext context,
     String teamName, {
     required bool isHome,
     required int matchNumber,
     String? score,
   }) {
-    final isPlaceholder = teamName.startsWith('Group ') || teamName.startsWith('Match ');
+    final isPlaceholder = teamName.startsWith('Group ') ||
+        teamName.startsWith('Match ') ||
+        RegExp(r'^[A-L]-[123]$').hasMatch(teamName.toUpperCase()) ||
+        RegExp(r'^[A-L](?:/[A-L])+-3$').hasMatch(teamName.toUpperCase());
     final controller = isHome
         ? _homeScoreControllers[matchNumber]
         : _awayScoreControllers[matchNumber];
+
+    final team = _findTeamByName(teamName);
+    final canOpenTeam = !isPlaceholder && team != null;
+    void openTeam() {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => TeamDetailScreen(team: team!),
+        ),
+      );
+    }
 
     return Expanded(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.08),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: CircleAvatar(
-              radius: 18,
-              backgroundColor: Colors.white,
-              child: isPlaceholder
-                  ? const Icon(Icons.help_outline, size: 16, color: Colors.grey)
-                  : ClipOval(
-                child: SvgPicture.asset(
-                  roundFlagAssetForTeam(teamName),
-                  width: 36,
-                  height: 36,
-                  fit: BoxFit.cover,
+          GestureDetector(
+            onTap: canOpenTeam ? openTeam : null,
+            child: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.08),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: CircleAvatar(
+                radius: 18,
+                backgroundColor: Colors.white,
+                child: isPlaceholder
+                    ? const Icon(Icons.help_outline, size: 16, color: Colors.grey)
+                    : ClipOval(
+                  child: SvgPicture.asset(
+                    roundFlagAssetForTeam(teamName),
+                    key: ValueKey(teamName),
+                    width: 36,
+                    height: 36,
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
             ),
           ),
           const SizedBox(height: 4),
-          Text(
-            teamName,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+          GestureDetector(
+            onTap: canOpenTeam
+                ? () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => TeamDetailScreen(team: team),
+                      ),
+                    );
+                  }
+                : null,
+            child: Text(
+              teamName,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
           // Score Display
           const SizedBox(height: 2),
@@ -521,6 +888,24 @@ class ScheduleScreenState extends State<ScheduleScreen> {
         ],
       ),
     );
+  }
+
+  TeamInfo? _findTeamByName(String teamName) {
+    final normalizedTarget = _normalizeTeamName(teamName);
+    for (final team in widget.teams) {
+      if (_normalizeTeamName(team.name) == normalizedTarget) {
+        return team;
+      }
+    }
+    return null;
+  }
+
+  String _normalizeTeamName(String name) {
+    return name
+        .toLowerCase()
+        .replaceAll('&', 'and')
+        .replaceAll(RegExp(r'[^a-z0-9]+'), '')
+        .trim();
   }
 
   Widget _timeSlot(String time) {
