@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 import '../data/world_cup_data.dart';
+import 'match_center_screen.dart';
 import 'team_detail_screen.dart';
 import '../utils/flag_asset.dart';
 
@@ -30,6 +31,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
   final ItemScrollController _itemScrollController = ItemScrollController();
   final ItemPositionsListener _itemPositionsListener =
       ItemPositionsListener.create();
+  final Map<int, GlobalKey> _dateChipKeys = <int, GlobalKey>{};
   int _selectedDateIndex = 0;
   bool _isProgrammaticScroll = false;
   bool _isEditing = false;
@@ -84,6 +86,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
       setState(() {
         _selectedDateIndex = current.index;
       });
+      _ensureSelectedDateChipVisible();
     }
   }
 
@@ -102,6 +105,22 @@ class ScheduleScreenState extends State<ScheduleScreen> {
     setState(() {
       _isProgrammaticScroll = false;
       _selectedDateIndex = index;
+    });
+    _ensureSelectedDateChipVisible();
+  }
+
+  void _ensureSelectedDateChipVisible() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final key = _dateChipKeys[_selectedDateIndex];
+      final context = key?.currentContext;
+      if (context == null) return;
+      Scrollable.ensureVisible(
+        context,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+        alignment: 0.5,
+      );
     });
   }
 
@@ -417,7 +436,11 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                       final day = filteredScheduleByDay[index];
                       final isSelected = index == _selectedDateIndex;
                       final chipParts = _dateChipParts(day.date);
+                      final chipKey =
+                          _dateChipKeys.putIfAbsent(index, () => GlobalKey());
                       return ChoiceChip(
+                        key: chipKey,
+                        showCheckmark: false,
                         label: Column(
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.center,
@@ -513,7 +536,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                       Padding(
                         padding: const EdgeInsets.only(left: 4, bottom: 12),
                         child: Text(
-                          daySchedule.date.toUpperCase(),
+                          _stripYearFromDate(daySchedule.date).toUpperCase(),
                           style: TextStyle(
                             color: Colors.blueGrey[800],
                             fontWeight: FontWeight.w900,
@@ -645,131 +668,149 @@ class ScheduleScreenState extends State<ScheduleScreen> {
   }
 
   (String, String, String) _dateChipParts(String fullDate) {
-    final parts = fullDate.split(' ');
-    if (parts.length >= 4) {
+    final dateWithoutYear = _stripYearFromDate(fullDate);
+    final parts = dateWithoutYear.split(' ');
+    if (parts.length >= 3) {
       final weekday = parts[0];
       final shortWeekday = weekday.length >= 3
           ? weekday.substring(0, 3)
           : weekday;
       return (shortWeekday, parts[1], parts[2]);
     }
-    return (fullDate, '', '');
+    return (dateWithoutYear, '', '');
+  }
+
+  String _stripYearFromDate(String date) {
+    return date
+        .replaceAll(RegExp(r'\b20\d{2}\b'), '')
+        .replaceAll(RegExp(r'\s{2,}'), ' ')
+        .trim();
   }
 
   Widget _buildMatchCard(BuildContext context, MatchFixture match) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => MatchCenterScreen(match: match, teams: widget.teams),
           ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: IntrinsicHeight(
-          child: Row(
-            children: [
-              // 1. Stage Sidebar
-              Container(
-                width: 22,
-                color: _getStageColor(match.stage),
-                child: Center(
-                  child: RotatedBox(
-                    quarterTurns: 3,
-                    child: Text(
-                      match.stage.toUpperCase(),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 1.0,
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: IntrinsicHeight(
+            child: Row(
+              children: [
+                // 1. Stage Sidebar
+                Container(
+                  width: 22,
+                  color: _getStageColor(match.stage),
+                  child: Center(
+                    child: RotatedBox(
+                      quarterTurns: 3,
+                      child: Text(
+                        match.stage.toUpperCase(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.0,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  child: Column(
-                    children: [
-                      // 2. Main Match Row (Teams & Scores)
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          _teamSlot(
-                            context,
-                            match.homeTeam,
-                            isHome: true,
-                            matchNumber: match.matchNumber,
-                            score: match.homeScore,
-                          ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    child: Column(
+                      children: [
+                        // 2. Main Match Row (Teams & Scores)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            _teamSlot(
+                              context,
+                              match.homeTeam,
+                              isHome: true,
+                              matchNumber: match.matchNumber,
+                              score: match.homeScore,
+                            ),
 
-                          // Center Info: Match Number & Time
-                          Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'MATCH ${match.matchNumber}',
-                                style: TextStyle(
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: 0.5,
-                                  color: Colors.blueGrey.withValues(alpha: 0.5),
+                            // Center Info: Match Number & Time
+                            Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'MATCH ${match.matchNumber}',
+                                  style: TextStyle(
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 0.5,
+                                    color: Colors.blueGrey.withValues(alpha: 0.5),
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                _timeSlot(match.time),
+                              ],
+                            ),
+
+                            _teamSlot(
+                              context,
+                              match.awayTeam,
+                              isHome: false,
+                              matchNumber: match.matchNumber,
+                              score: match.awayScore,
+                            ),
+                          ],
+                        ),
+
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 8.0),
+                          child: Divider(height: 1, thickness: 0.5),
+                        ),
+
+                        // 3. Footer Row (Venue & Broadcaster)
+                        Row(
+                          children: [
+                            const Icon(Icons.location_on_outlined, size: 12, color: Colors.grey),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                '${match.city} | ${match.stadium}',
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.grey,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
-                              const SizedBox(height: 4),
-                              _timeSlot(match.time),
-                            ],
-                          ),
-
-                          _teamSlot(
-                            context,
-                            match.awayTeam,
-                            isHome: false,
-                            matchNumber: match.matchNumber,
-                            score: match.awayScore,
-                          ),
-                        ],
-                      ),
-
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 8.0),
-                        child: Divider(height: 1, thickness: 0.5),
-                      ),
-
-                      // 3. Footer Row (Venue & Broadcaster)
-                      Row(
-                        children: [
-                          const Icon(Icons.location_on_outlined, size: 12, color: Colors.grey),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text(
-                              '${match.city} | ${match.stadium}',
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                color: Colors.grey,
-                                fontWeight: FontWeight.w500,
-                              ),
                             ),
-                          ),
-                          const SizedBox(width: 8),
-                          _broadcasterBadge(match.broadcaster),
-                        ],
-                      ),
-                    ],
+                            const SizedBox(width: 8),
+                            _broadcasterBadge(match.broadcaster),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
