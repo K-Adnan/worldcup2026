@@ -3,7 +3,9 @@ String flagAssetForTeam(String teamName) {
     'USA': 'United States',
     'Turkey': 'Türkiye',
     'Curacao': 'Curaçao',
-    'Bosnia-Herzegovina': 'Bosnia and Herzegovina',
+    'Bosnia-Herzegovina': 'Bosnia',
+    'Bosnia & Herzegovina': 'Bosnia',
+    'Bosnia and Herzegovina': 'Bosnia',
     'Czechia': 'Czech Republic',
     'Congo DR': 'DR Congo',
   };
@@ -25,7 +27,6 @@ String roundFlagAssetForTeam(String teamName) {
     'USA': 'United States',
     'Turkey': 'Türkiye',
     'Curacao': 'Curaçao',
-    'Bosnia-Herzegovina': 'Bosnia and Herzegovina',
     'Czechia': 'Czech Republic',
     'Congo DR': 'DR Congo',
   };
