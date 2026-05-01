@@ -1,9 +1,64 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+
 import '../data/world_cup_data.dart';
 import '../utils/flag_asset.dart';
 
-class TableScreen extends StatelessWidget {
+Widget _stripeGradientHeader(String titleUpper, {double fontSize = 20, bool expandTitle = false}) {
+  return Container(
+    width: double.infinity,
+    padding: const EdgeInsets.fromLTRB(20, 18, 20, 16),
+    decoration: const BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.centerLeft,
+        end: Alignment.centerRight,
+        colors: [Color(0xFF002855), Color(0xFF001D3D)],
+      ),
+    ),
+    child: Row(
+      children: [
+        Container(
+          width: 4,
+          height: 22,
+          decoration: BoxDecoration(
+            color: const Color(0xFF7BD389).withValues(alpha: 0.95),
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        const SizedBox(width: 12),
+        if (expandTitle)
+          Expanded(
+            child: Text(
+              titleUpper,
+              style: GoogleFonts.bebasNeue(
+                fontSize: fontSize,
+                letterSpacing: 1.05,
+                color: Colors.white,
+                shadows: const [
+                  Shadow(color: Colors.black26, offset: Offset(0, 1), blurRadius: 2),
+                ],
+              ),
+            ),
+          )
+        else
+          Text(
+            titleUpper,
+            style: GoogleFonts.bebasNeue(
+              fontSize: fontSize,
+              letterSpacing: 1.25,
+              color: Colors.white,
+              shadows: const [
+                Shadow(color: Colors.black26, offset: Offset(0, 1), blurRadius: 2),
+              ],
+            ),
+          ),
+      ],
+    ),
+  );
+}
+
+class TableScreen extends StatefulWidget {
   const TableScreen({super.key, required this.scheduleByDay, required this.teams});
 
   final List<DaySchedule> scheduleByDay;
@@ -11,106 +66,15 @@ class TableScreen extends StatelessWidget {
 
   static const List<String> _groupLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
 
+  static const String _thirdPlaceChipLabel = '3rd Places';
+
   static String _groupLabel(String letter) => 'Group $letter';
 
-  // ... (Keep existing _allMatches, _isPlaceholderTeam, _parseScore, _statsForGroup, _sortedStandings logic)
+  /// Display title for gradient header inside the third-placed standings card.
+  static const String _sectionHeaderThirdPlaceRanking = 'Ranking of third-placed teams';
 
-  @override
-  Widget build(BuildContext context) {
-    final allMatches = _allMatches(scheduleByDay);
+  static int get _sectionCount => _groupLetters.length + 1;
 
-    return Container(
-      color: const Color(0xFFF8FAFC),
-      child: ListView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-        itemCount: _groupLetters.length,
-        itemBuilder: (context, index) {
-          final letter = _groupLetters[index];
-          final label = _groupLabel(letter);
-          final raw = _statsForGroup(label, allMatches, teams);
-          final rows = _sortedStandings(label, allMatches, raw);
-
-          return Container(
-            margin: const EdgeInsets.only(bottom: 24),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            clipBehavior: Clip.antiAlias,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeader(label),
-                if (rows.isEmpty) _buildEmptyState() else _StandingsTable(rows: rows),
-                const SizedBox(height: 8),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildHeader(String label) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 16),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-          colors: [Color(0xFF002855), Color(0xFF001D3D)],
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 4,
-            height: 22,
-            decoration: BoxDecoration(
-              color: const Color(0xFF7BD389).withValues(alpha: 0.95),
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Text(
-            label.toUpperCase(),
-            style: GoogleFonts.bebasNeue(
-              fontSize: 23,
-              letterSpacing: 1.3,
-              color: Colors.white,
-              shadows: [
-                Shadow(
-                  color: Colors.black26,
-                  offset: Offset(0, 1),
-                  blurRadius: 2,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-      child: Text(
-        'Waiting for group assignments...',
-        style: TextStyle(color: Colors.blueGrey, fontSize: 13, fontStyle: FontStyle.italic),
-      ),
-    );
-  }
-
-  // --- Logic methods remain the same as your provided code ---
   static List<MatchFixture> _allMatches(List<DaySchedule> days) {
     final out = <MatchFixture>[];
     for (final d in days) {
@@ -176,7 +140,6 @@ class TableScreen extends StatelessWidget {
     return stats;
   }
 
-  /// Group-stage fixtures used for standings (scores may be unfinished).
   static List<MatchFixture> _groupStageMatches(String groupLabel, List<MatchFixture> allMatches) {
     final out = <MatchFixture>[];
     for (final m in allMatches) {
@@ -229,7 +192,6 @@ class TableScreen extends StatelessWidget {
     });
   }
 
-  /// Head-to-head mini-table among [tieSubset]; only matches involving both clubs count.
   static Map<String, _HeadToHeadMini> _computeHeadToHeadMini(
     Set<String> tieSubset,
     List<MatchFixture> groupMatches,
@@ -268,7 +230,6 @@ class TableScreen extends StatelessWidget {
         x.goalsFor == y.goalsFor;
   }
 
-  /// Negative ⇒ [a] is ordered above [b] (better head-to-head).
   static int _compareHeadToHeadMini(_HeadToHeadMini a, _HeadToHeadMini b) {
     final cPt = b.points.compareTo(a.points);
     if (cPt != 0) return cPt;
@@ -290,8 +251,6 @@ class TableScreen extends StatelessWidget {
     return nameA.toLowerCase().compareTo(nameB.toLowerCase());
   }
 
-  /// When teams are tied on total points: head-to-head among the subset, recursively for
-  /// sub-ties; if head-to-head is completely level, falls back to overall GD, GF, name.
   static List<String> _resolveHeadToHeadOrder(
     List<String> tiedTeams,
     Map<String, _RunningStats> stats,
@@ -330,6 +289,52 @@ class TableScreen extends StatelessWidget {
     }
     return ordered;
   }
+
+  static _RunningStats _runningStatsFromStandingRow(_StandingRow r) {
+    final s = _RunningStats()
+      ..wins = r.wins
+      ..draws = r.draws
+      ..losses = r.losses
+      ..goalsFor = r.goalsFor
+      ..goalsAgainst = r.goalsAgainst;
+    return s;
+  }
+
+  static int _compareThirdPlacedAcrossGroups(_StandingRow a, _StandingRow b) {
+    final cPts = b.points.compareTo(a.points);
+    if (cPts != 0) return cPts;
+    final sa = _runningStatsFromStandingRow(a);
+    final sb = _runningStatsFromStandingRow(b);
+    return _compareOverallStats(sa, sb, a.team, b.team);
+  }
+
+  static List<_ThirdPlaceRankingRow> _sortedThirdPlaceRanking(
+    List<MatchFixture> allMatches,
+    List<TeamInfo> teamList,
+  ) {
+    final picks = <_ThirdPlacePick>[];
+    for (final letter in _groupLetters) {
+      final label = _groupLabel(letter);
+      final raw = _statsForGroup(label, allMatches, teamList);
+      final rows = _sortedStandings(label, allMatches, raw);
+      if (rows.length < 3) continue;
+      picks.add(_ThirdPlacePick(groupLabel: label, thirdPlacedRow: rows[2]));
+    }
+    picks.sort(
+      (a, b) => _compareThirdPlacedAcrossGroups(a.thirdPlacedRow, b.thirdPlacedRow),
+    );
+    return List<_ThirdPlaceRankingRow>.generate(picks.length, (i) {
+      final pick = picks[i];
+      return _ThirdPlaceRankingRow(
+        leaderboardRank: i + 1,
+        sourceGroupLabel: pick.groupLabel,
+        row: pick.thirdPlacedRow,
+      );
+    });
+  }
+
+  @override
+  State<TableScreen> createState() => _TableScreenState();
 }
 
 class _HeadToHeadMini {
@@ -342,6 +347,408 @@ class _HeadToHeadMini {
   int get points => wins * 3 + draws;
 
   int get goalDifference => goalsFor - goalsAgainst;
+}
+
+class _TableScreenState extends State<TableScreen> {
+  final ItemScrollController _itemScrollController = ItemScrollController();
+  final ItemPositionsListener _itemPositionsListener =
+      ItemPositionsListener.create();
+  final Map<int, GlobalKey> _sectionChipKeys = <int, GlobalKey>{};
+  int _selectedSectionIndex = 0;
+  bool _isProgrammaticScroll = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _itemPositionsListener.itemPositions.addListener(_syncSectionFromScroll);
+  }
+
+  @override
+  void dispose() {
+    _itemPositionsListener.itemPositions.removeListener(_syncSectionFromScroll);
+    super.dispose();
+  }
+
+  void _syncSectionFromScroll() {
+    if (_isProgrammaticScroll) return;
+    final positions = _itemPositionsListener.itemPositions.value;
+    if (positions.isEmpty) return;
+
+    final visible = positions.where((item) => item.itemTrailingEdge > 0).toList();
+    if (visible.isEmpty) return;
+
+    visible.sort((a, b) {
+      final aDistance = (a.itemLeadingEdge).abs();
+      final bDistance = (b.itemLeadingEdge).abs();
+      return aDistance.compareTo(bDistance);
+    });
+
+    final current = visible.first;
+    if (current.index != _selectedSectionIndex && mounted) {
+      setState(() {
+        _selectedSectionIndex = current.index;
+      });
+      _ensureSelectedChipVisible();
+    }
+  }
+
+  Future<void> _jumpToSection(int index) async {
+    if (index < 0 || index >= TableScreen._sectionCount) return;
+    setState(() {
+      _selectedSectionIndex = index;
+      _isProgrammaticScroll = true;
+    });
+    await _itemScrollController.scrollTo(
+      index: index,
+      duration: const Duration(milliseconds: 350),
+      curve: Curves.easeInOut,
+      alignment: 0.02,
+    );
+    if (!mounted) return;
+    setState(() {
+      _isProgrammaticScroll = false;
+      _selectedSectionIndex = index;
+    });
+    _ensureSelectedChipVisible();
+  }
+
+  void _ensureSelectedChipVisible() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final key = _sectionChipKeys[_selectedSectionIndex];
+      final ctx = key?.currentContext;
+      if (ctx == null) return;
+      Scrollable.ensureVisible(
+        ctx,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+        alignment: 0.5,
+      );
+    });
+  }
+
+  Widget _buildGroupTitleHeader(String label) =>
+      _stripeGradientHeader(label.toUpperCase(), fontSize: 23);
+
+  Widget _buildEmptyState() {
+    return const Padding(
+      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+      child: Text(
+        'Waiting for group assignments...',
+        style: TextStyle(color: Colors.blueGrey, fontSize: 13, fontStyle: FontStyle.italic),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final allMatches = TableScreen._allMatches(widget.scheduleByDay);
+    final thirdPlaceRankings =
+        TableScreen._sortedThirdPlaceRanking(allMatches, widget.teams);
+
+    return Container(
+      color: const Color(0xFFF8FAFC),
+      child: Column(
+        children: [
+          SizedBox(
+            height: 74,
+            child: ListView.separated(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              scrollDirection: Axis.horizontal,
+              itemCount: TableScreen._sectionCount,
+              separatorBuilder: (_, _) => const SizedBox(width: 8),
+              itemBuilder: (context, index) {
+                final isThirdSection = index == TableScreen._groupLetters.length;
+                final isSelected = index == _selectedSectionIndex;
+                final chipKey =
+                    _sectionChipKeys.putIfAbsent(index, () => GlobalKey());
+
+                return ChoiceChip(
+                  key: chipKey,
+                  showCheckmark: false,
+                  label: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+                    child: Text(
+                      isThirdSection
+                          ? TableScreen._thirdPlaceChipLabel
+                          : TableScreen._groupLetters[index],
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: isThirdSection ? 11 : 14,
+                        fontWeight: FontWeight.w700,
+                        height: isThirdSection ? 1.1 : 1.0,
+                      ),
+                    ),
+                  ),
+                  selected: isSelected,
+                  onSelected: (_) => _jumpToSection(index),
+                );
+              },
+            ),
+          ),
+          Expanded(
+            child: ScrollablePositionedList.builder(
+              itemScrollController: _itemScrollController,
+              itemPositionsListener: _itemPositionsListener,
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+              itemCount: TableScreen._sectionCount,
+              itemBuilder: (context, index) {
+                if (index == TableScreen._groupLetters.length) {
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 4, bottom: 8),
+                    child: _ThirdPlaceRankingCard(
+                      rankings: thirdPlaceRankings,
+                      sectionHeaderTitle: TableScreen._sectionHeaderThirdPlaceRanking,
+                    ),
+                  );
+                }
+                final letter = TableScreen._groupLetters[index];
+                final label = TableScreen._groupLabel(letter);
+                final raw =
+                    TableScreen._statsForGroup(label, allMatches, widget.teams);
+                final rows =
+                    TableScreen._sortedStandings(label, allMatches, raw);
+
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 24),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.04),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildGroupTitleHeader(label),
+                        if (rows.isEmpty)
+                          _buildEmptyState()
+                        else
+                          _StandingsTable(rows: rows),
+                        const SizedBox(height: 8),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ThirdPlacePick {
+  const _ThirdPlacePick({required this.groupLabel, required this.thirdPlacedRow});
+
+  final String groupLabel;
+  final _StandingRow thirdPlacedRow;
+}
+
+class _ThirdPlaceRankingRow {
+  const _ThirdPlaceRankingRow({
+    required this.leaderboardRank,
+    required this.sourceGroupLabel,
+    required this.row,
+  });
+
+  final int leaderboardRank;
+  final String sourceGroupLabel;
+  final _StandingRow row;
+}
+
+class _ThirdPlaceRankingCard extends StatelessWidget {
+  const _ThirdPlaceRankingCard({
+    required this.rankings,
+    required this.sectionHeaderTitle,
+  });
+
+  final List<_ThirdPlaceRankingRow> rankings;
+  final String sectionHeaderTitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _stripeGradientHeader(
+            sectionHeaderTitle.toUpperCase(),
+            fontSize: 17.5,
+            expandTitle: true,
+          ),
+          if (rankings.isEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(22, 20, 22, 24),
+              child: Text(
+                'Shows when every group has at least three teams so a 3rd place exists in each.',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontStyle: FontStyle.italic,
+                  color: Colors.blueGrey.shade600,
+                ),
+              ),
+            )
+          else
+            _ThirdPlacesRankingsBody(rankings: rankings),
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+}
+
+class _ThirdPlacesRankingsBody extends StatelessWidget {
+  const _ThirdPlacesRankingsBody({required this.rankings});
+
+  final List<_ThirdPlaceRankingRow> rankings;
+
+  static String _signedGoalDiff(_StandingRow r) {
+    final d = r.goalsFor - r.goalsAgainst;
+    if (d > 0) return '+$d';
+    return '$d';
+  }
+
+  Widget _hdr(String text, {double? width, TextAlign align = TextAlign.center, bool bold = false}) {
+    return SizedBox(
+      width: width,
+      child: Text(
+        text,
+        textAlign: align,
+        style: GoogleFonts.inter(
+          fontSize: 10.5,
+          fontWeight: bold ? FontWeight.w800 : FontWeight.w600,
+          color: Colors.blueGrey.shade600,
+          letterSpacing: 0.35,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+          color: const Color(0xFFF1F5F9),
+          child: Row(
+            children: [
+              _hdr('RK', width: 34),
+              _hdr('GRP', width: 36),
+              Expanded(child: _hdr('TEAM', align: TextAlign.left)),
+              _hdr('PTS', width: 34, bold: true),
+              _hdr('GD', width: 30),
+              _hdr('GF', width: 28),
+            ],
+          ),
+        ),
+        ...rankings.map((e) {
+          final r = e.row;
+          final grpLetter = e.sourceGroupLabel.replaceFirst(RegExp(r'^group\s+', caseSensitive: false), '');
+          return Container(
+            padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 6),
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(color: Colors.black.withValues(alpha: 0.06)),
+              ),
+            ),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 34,
+                  child: Text(
+                    '${e.leaderboardRank}',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 12),
+                  ),
+                ),
+                SizedBox(
+                  width: 36,
+                  child: Text(
+                    grpLetter,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 12),
+                  ),
+                ),
+                Expanded(
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 28,
+                        height: 18,
+                        child: Center(
+                          child: Image.asset(
+                            flagAssetForTeam(r.team),
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) =>
+                                const Icon(Icons.flag, size: 13, color: Colors.grey),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          r.team,
+                          style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 13),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(
+                  width: 34,
+                  child: Text(
+                    '${r.points}',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.inter(fontWeight: FontWeight.w800, fontSize: 12),
+                  ),
+                ),
+                SizedBox(
+                  width: 30,
+                  child: Text(
+                    _signedGoalDiff(r),
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.inter(fontWeight: FontWeight.w500, fontSize: 12),
+                  ),
+                ),
+                SizedBox(
+                  width: 28,
+                  child: Text(
+                    '${r.goalsFor}',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.inter(fontWeight: FontWeight.w500, fontSize: 12),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }),
+      ],
+    );
+  }
 }
 
 class _StandingsTable extends StatelessWidget {
