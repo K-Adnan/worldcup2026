@@ -47,9 +47,17 @@ class ScheduleScreenState extends State<ScheduleScreen> {
   void initState() {
     super.initState();
     _itemPositionsListener.itemPositions.addListener(_syncSelectedDate);
+    _pruneInvalidFilters();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       widget.onEditStateChanged?.call();
     });
+  }
+
+  @override
+  void didUpdateWidget(covariant ScheduleScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Data refresh can change available filter options; remove stale selections.
+    _pruneInvalidFilters();
   }
 
   bool get isEditing => _isEditing;
@@ -214,6 +222,14 @@ class ScheduleScreenState extends State<ScheduleScreen> {
     return values;
   }
 
+  void _pruneInvalidFilters() {
+    _selectedGroups.removeWhere((g) => !_availableGroups.contains(g));
+    _selectedCities.removeWhere((c) => !_availableCities.contains(c));
+    _selectedTimes.removeWhere((t) => !_availableTimes.contains(t));
+    _selectedBroadcasters
+        .removeWhere((b) => !_availableBroadcasters.contains(b));
+  }
+
   List<DaySchedule> get _filteredScheduleByDay {
     final filteredDays = <DaySchedule>[];
     for (final day in widget.scheduleByDay) {
@@ -226,17 +242,20 @@ class ScheduleScreenState extends State<ScheduleScreen> {
   }
 
   bool _matchPassesFilters(MatchFixture match) {
+    final city = match.city.trim();
+    final time = match.time.trim();
+    final broadcaster = match.broadcaster.trim();
     if (_selectedGroups.isNotEmpty && !_matchBelongsToSelectedGroups(match)) {
       return false;
     }
-    if (_selectedCities.isNotEmpty && !_selectedCities.contains(match.city)) {
+    if (_selectedCities.isNotEmpty && !_selectedCities.contains(city)) {
       return false;
     }
-    if (_selectedTimes.isNotEmpty && !_selectedTimes.contains(match.time)) {
+    if (_selectedTimes.isNotEmpty && !_selectedTimes.contains(time)) {
       return false;
     }
     if (_selectedBroadcasters.isNotEmpty &&
-        !_selectedBroadcasters.contains(match.broadcaster)) {
+        !_selectedBroadcasters.contains(broadcaster)) {
       return false;
     }
     return true;

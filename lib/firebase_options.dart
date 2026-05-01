@@ -85,4 +85,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'worldcup2026-1.firebasestorage.app',
     measurementId: 'G-FLD825P6RB',
   );
+
 }
