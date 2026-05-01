@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '../../data/world_cup_data.dart';
+import '../../utils/player_position.dart';
 
 const List<String> kFormationOptions = [
   '3-2-4-1',
@@ -196,10 +197,6 @@ class _MatchPitchState extends State<MatchPitch> {
     return '${s.substring(0, 11)}.';
   }
 
-  static String _playerKey(TeamPlayer p) {
-    return '${p.number ?? -1}:::${p.name}';
-  }
-
   static PitchSlotPlayer _slotFromKey(String key) {
     if (key.isEmpty) return const PitchSlotPlayer();
     final sep = key.indexOf(':::');
@@ -215,8 +212,14 @@ class _MatchPitchState extends State<MatchPitch> {
     return '${label.number ?? -1}:::${label.name}';
   }
 
+  String _positionForKey(List<TeamPlayer> squad, String key) {
+    for (final p in squad) {
+      if ('${p.number ?? -1}:::${p.name}' == key) return p.position;
+    }
+    return '';
+  }
+
   Future<void> _openPlayerPicker({
-    required BuildContext context,
     required bool home,
     required int slotIndex,
   }) async {
@@ -232,80 +235,41 @@ class _MatchPitchState extends State<MatchPitch> {
     final sorted = List<TeamPlayer>.from(squad)
       ..sort((a, b) => (a.number ?? 9999).compareTo(b.number ?? 9999));
 
+    final isGoalkeeperSlot = slotIndex == 0;
+    final sideLabels = home ? _homeLabels : _awayLabels;
+    final occupiedKeys = sideLabels
+        .asMap()
+        .entries
+        .where((e) => e.key != slotIndex && e.value.isAssigned)
+        .map((e) => '${e.value.number ?? -1}:::${e.value.name}')
+        .toSet();
+
+    final eligiblePlayers = sorted.where((p) {
+      final key = '${p.number ?? -1}:::${p.name}';
+      if (occupiedKeys.contains(key)) return false;
+      if (isGoalkeeperSlot) {
+        return p.categoryPosition == 'Goalkeeper';
+      }
+      return p.categoryPosition != 'Goalkeeper';
+    }).toList();
+
     final current = home ? _homeLabels[slotIndex] : _awayLabels[slotIndex];
-    final squadKeys = sorted.map(_playerKey).toSet();
+    final squadKeys =
+        eligiblePlayers.map((p) => '${p.number ?? -1}:::${p.name}').toSet();
     final savedKey = _keyForLabel(current) ?? '';
     final orphanAssigned = current.isAssigned &&
         savedKey.isNotEmpty &&
         !squadKeys.contains(savedKey);
-    var dialogSelection =
-        current.isAssigned && (squadKeys.contains(savedKey) || orphanAssigned)
-            ? savedKey
-            : '';
-
-    final picked = await showDialog<String>(
+    final picked = await showModalBottomSheet<String>(
       context: context,
-      builder: (ctx) {
-        return AlertDialog(
-          title: const Text('Select player'),
-          content: StatefulBuilder(
-            builder: (ctx, setDialog) {
-              final items = <DropdownMenuItem<String>>[
-                const DropdownMenuItem<String>(
-                  value: '',
-                  child: Text('— Unassigned —'),
-                ),
-                if (orphanAssigned)
-                  DropdownMenuItem<String>(
-                    value: savedKey,
-                    child: Text(
-                      '${current.number != null ? '#${current.number} ' : ''}${_surnameForDisplay(current.name)}',
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ...sorted.map(
-                  (p) => DropdownMenuItem<String>(
-                    value: _playerKey(p),
-                    child: Text(
-                      '${p.number != null ? '#${p.number} ' : ''}${_surnameForDisplay(p.name)}',
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ),
-              ];
-              final validValues = items.map((e) => e.value!).toSet();
-              final dropdownValue = dialogSelection.isNotEmpty &&
-                      validValues.contains(dialogSelection)
-                  ? dialogSelection
-                  : '';
-              return InputDecorator(
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Player',
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    isExpanded: true,
-                    value: dropdownValue.isEmpty ? '' : dropdownValue,
-                    items: items,
-                    onChanged: (v) {
-                      if (v == null) return;
-                      setDialog(() => dialogSelection = v);
-                    },
-                  ),
-                ),
-              );
-            },
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-            FilledButton(
-              onPressed: () => Navigator.pop(ctx, dialogSelection),
-              child: const Text('OK'),
-            ),
-          ],
-        );
-      },
+      isScrollControlled: true,
+      builder: (_) => _SearchablePlayerPicker(
+        players: eligiblePlayers,
+        savedKey: savedKey,
+        orphanAssigned: orphanAssigned,
+        orphanLabel: current.name,
+        orphanPosition: _positionForKey(eligiblePlayers, savedKey),
+      ),
     );
 
     if (!mounted || picked == null) return;
@@ -532,7 +496,6 @@ class _MatchPitchState extends State<MatchPitch> {
             children: [
               GestureDetector(
                 onTap: () => _openPlayerPicker(
-                  context: context,
                   home: home,
                   slotIndex: index,
                 ),
@@ -709,6 +672,234 @@ class _MatchPitchState extends State<MatchPitch> {
           bottomLeft: Radius.circular(bl ?? 0),
           bottomRight: Radius.circular(br ?? 0),
         ),
+      ),
+    );
+  }
+}
+
+class _SearchablePlayerPicker extends StatefulWidget {
+  const _SearchablePlayerPicker({
+    required this.players,
+    required this.savedKey,
+    required this.orphanAssigned,
+    required this.orphanLabel,
+    required this.orphanPosition,
+  });
+
+  final List<TeamPlayer> players;
+  final String savedKey;
+  final bool orphanAssigned;
+  final String orphanLabel;
+  final String orphanPosition;
+
+  @override
+  State<_SearchablePlayerPicker> createState() => _SearchablePlayerPickerState();
+}
+
+class _SearchablePlayerPickerState extends State<_SearchablePlayerPicker> {
+  String _query = '';
+
+  String _keyFor(TeamPlayer p) => '${p.number ?? -1}:::${p.name}';
+
+  String _formatMarketValue(int value) {
+    if (value >= 1000000000) {
+      return '€${(value / 1000000000).toStringAsFixed(3)}B';
+    }
+    if (value >= 1000000) return '€${(value / 1000000).toStringAsFixed(1)}M';
+    if (value >= 1000) return '€${(value / 1000).toStringAsFixed(0)}k';
+    return '€$value';
+  }
+
+  String _formatHeight(int cm) => '${(cm / 100).toStringAsFixed(2)}m';
+
+  (String, Color) _footBadge(String footRaw) {
+    final foot = footRaw.toLowerCase();
+    if (foot.contains('left')) return ('L', Colors.orange[700]!);
+    if (foot.contains('both')) return ('B', Colors.green[700]!);
+    return ('R', Colors.blue[700]!);
+  }
+
+  List<TeamPlayer> _filtered(List<TeamPlayer> players) {
+    final q = _query.trim().toLowerCase();
+    if (q.isEmpty) return players;
+    return players
+        .where((p) =>
+            p.name.toLowerCase().contains(q) ||
+            p.position.toLowerCase().contains(q))
+        .toList();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final goalkeepers = _filtered(
+      widget.players.where((p) => p.categoryPosition == 'Goalkeeper').toList(),
+    );
+    final defenders = _filtered(
+      widget.players.where((p) => p.categoryPosition == 'Defender').toList(),
+    );
+    final midfielders = _filtered(
+      widget.players.where((p) => p.categoryPosition == 'Midfielder').toList(),
+    );
+    final attackers = _filtered(
+      widget.players.where((p) => p.categoryPosition == 'Attacker').toList(),
+    );
+
+    Widget buildSection(String title, List<TeamPlayer> items) {
+      if (items.isEmpty) return const SizedBox.shrink();
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
+            child: Text(
+              title,
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
+          ),
+          ...items.map(
+            (p) {
+              final (footLabel, footColor) = _footBadge(p.preferredFoot);
+              return ListTile(
+                dense: true,
+                leading: CircleAvatar(
+                  radius: 14,
+                  child: Text(
+                    p.number?.toString() ?? '-',
+                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+                  ),
+                ),
+                title: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '${abbreviatePlayerPosition(p.position)} | ${p.name}',
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      '${p.caps} / ${p.goals}',
+                      style: TextStyle(
+                        color: Colors.blueGrey[500],
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      _formatHeight(p.heightCm),
+                      style: TextStyle(
+                        color: Colors.blueGrey[500],
+                        fontSize: 11,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      width: 16,
+                      height: 16,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: footColor.withValues(alpha: 0.1),
+                        border: Border.all(
+                          color: footColor.withValues(alpha: 0.5),
+                          width: 0.5,
+                        ),
+                      ),
+                      child: Text(
+                        footLabel,
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                          color: footColor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                trailing: Text(
+                  _formatMarketValue(p.marketValue),
+                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
+                ),
+                onTap: () => Navigator.pop(context, _keyFor(p)),
+              );
+            },
+          ),
+        ],
+      );
+    }
+
+    return SafeArea(
+      child: DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.72,
+        minChildSize: 0.45,
+        maxChildSize: 0.9,
+        builder: (_, controller) {
+          return Material(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+            child: Column(
+              children: [
+                const SizedBox(height: 8),
+                Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.black26,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          autofocus: true,
+                          onChanged: (v) => setState(() => _query = v),
+                          decoration: const InputDecoration(
+                            prefixIcon: Icon(Icons.search),
+                            hintText: 'Search player',
+                            border: OutlineInputBorder(),
+                            isDense: true,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, ''),
+                        child: const Text('Clear'),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(height: 1),
+                Expanded(
+                  child: ListView(
+                    controller: controller,
+                    children: [
+                      if (widget.orphanAssigned)
+                        ListTile(
+                          dense: true,
+                          title: Text(
+                            '${abbreviatePlayerPosition(widget.orphanPosition)} | ${widget.orphanLabel}',
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          onTap: () => Navigator.pop(context, widget.savedKey),
+                        ),
+                      if (widget.orphanAssigned) const Divider(height: 1),
+                      buildSection('Goalkeepers', goalkeepers),
+                      buildSection('Defence', defenders),
+                      buildSection('Midfielders', midfielders),
+                      buildSection('Attackers', attackers),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
