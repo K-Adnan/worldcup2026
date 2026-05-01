@@ -6,6 +6,7 @@ import 'firebase_options.dart';
 import 'screens/schedule_screen.dart';
 import 'screens/table_screen.dart';
 import 'screens/teams_screen.dart';
+import 'screens/players_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -160,6 +161,7 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
           TeamsScreen(teams: _data.teams),
+          PlayersScreen(teams: _data.teams),
           const TableScreen(),
         ],
       ),
@@ -180,6 +182,11 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icon(Icons.groups_outlined),
             selectedIcon: Icon(Icons.groups),
             label: 'Teams',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.person_search_outlined),
+            selectedIcon: Icon(Icons.person_search),
+            label: 'Players',
           ),
           NavigationDestination(
             icon: Icon(Icons.table_chart_outlined),

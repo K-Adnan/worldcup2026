@@ -9,6 +9,8 @@ String abbreviatePlayerPosition(String position) {
     'defensive midfield': 'DM',
     'central midfielder': 'CM',
     'central midfield': 'CM',
+    'left midfield': 'LM',
+    'right midfield': 'RM',
     'attacking midfielder': 'AM',
     'attacking midfield': 'AM',
     'striker': 'ST',
