@@ -624,6 +624,13 @@ class _ThirdPlacesRankingsBody extends StatelessWidget {
 
   final List<_ThirdPlaceRankingRow> rankings;
 
+  /// Same fills as `_StandingsTable._rowBackground`: top-two green, fourth grey.
+  static const Color _topBandGreen = Color(0xFFE8F5E9);
+  static const Color _outerBandGrey = Color(0xFFEEEEEE);
+
+  static Color _rowFill(int leaderboardRank) =>
+      leaderboardRank <= 8 ? _topBandGreen : _outerBandGrey;
+
   static String _signedGoalDiff(_StandingRow r) {
     final d = r.goalsFor - r.goalsAgainst;
     if (d > 0) return '+$d';
@@ -658,9 +665,9 @@ class _ThirdPlacesRankingsBody extends StatelessWidget {
               _hdr('RK', width: 34),
               _hdr('GRP', width: 36),
               Expanded(child: _hdr('TEAM', align: TextAlign.left)),
-              _hdr('PTS', width: 34, bold: true),
-              _hdr('GD', width: 30),
-              _hdr('GF', width: 28),
+              _hdr('PTS', width: 32, bold: true),
+              _hdr('GD', width: 28),
+              _hdr('GF : GA', width: 54),
             ],
           ),
         ),
@@ -670,6 +677,7 @@ class _ThirdPlacesRankingsBody extends StatelessWidget {
           return Container(
             padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 6),
             decoration: BoxDecoration(
+              color: _rowFill(e.leaderboardRank),
               border: Border(
                 bottom: BorderSide(color: Colors.black.withValues(alpha: 0.06)),
               ),
@@ -719,7 +727,7 @@ class _ThirdPlacesRankingsBody extends StatelessWidget {
                   ),
                 ),
                 SizedBox(
-                  width: 34,
+                  width: 32,
                   child: Text(
                     '${r.points}',
                     textAlign: TextAlign.center,
@@ -727,7 +735,7 @@ class _ThirdPlacesRankingsBody extends StatelessWidget {
                   ),
                 ),
                 SizedBox(
-                  width: 30,
+                  width: 28,
                   child: Text(
                     _signedGoalDiff(r),
                     textAlign: TextAlign.center,
@@ -735,11 +743,13 @@ class _ThirdPlacesRankingsBody extends StatelessWidget {
                   ),
                 ),
                 SizedBox(
-                  width: 28,
+                  width: 54,
                   child: Text(
-                    '${r.goalsFor}',
+                    '${r.goalsFor} : ${r.goalsAgainst}',
                     textAlign: TextAlign.center,
-                    style: GoogleFonts.inter(fontWeight: FontWeight.w500, fontSize: 12),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.inter(fontWeight: FontWeight.w500, fontSize: 11.5),
                   ),
                 ),
               ],

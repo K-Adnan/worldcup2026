@@ -113,6 +113,30 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: showScheduleActions
             ? [
                 if (isEditing) ...[
+                  PopupMenuButton<String>(
+                    tooltip: 'Score tools',
+                    enabled: scheduleReady && !isSaving,
+                    icon: const Icon(Icons.more_vert),
+                    onSelected: (value) {
+                      final schedule = scheduleState;
+                      if (schedule == null || isSaving) return;
+                      if (value == 'random') {
+                        schedule.populateRandomScores();
+                      } else if (value == 'clear') {
+                        schedule.clearAllScores();
+                      }
+                    },
+                    itemBuilder: (context) => const [
+                      PopupMenuItem(
+                        value: 'random',
+                        child: Text('Populate random scores'),
+                      ),
+                      PopupMenuItem(
+                        value: 'clear',
+                        child: Text('Clear all results'),
+                      ),
+                    ],
+                  ),
                   TextButton(
                     onPressed: (!scheduleReady || isSaving)
                         ? null

@@ -7,6 +7,7 @@ import '../data/world_cup_data.dart';
 import 'match_center_screen.dart';
 import 'team_detail_screen.dart';
 import '../utils/flag_asset.dart';
+import '../utils/random_match_scores.dart';
 
 class ScheduleScreen extends StatefulWidget {
   const ScheduleScreen({
@@ -319,7 +320,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
     });
   }
 
-  void enterEditMode() {
+  void _ensureAllScoreControllersExist() {
     for (final day in widget.scheduleByDay) {
       for (final match in day.matches) {
         _homeScoreControllers.putIfAbsent(
@@ -336,10 +337,46 @@ class ScheduleScreenState extends State<ScheduleScreen> {
         );
       }
     }
+  }
+
+  void enterEditMode() {
+    _ensureAllScoreControllersExist();
     setState(() {
       _isEditing = true;
     });
     widget.onEditStateChanged?.call();
+  }
+
+  /// Uses weighted historical scorelines; each asymmetric pattern is split 50/50
+  /// for home vs away orientation (draws unchanged).
+  void populateRandomScores() {
+    if (!_isEditing) return;
+    _ensureAllScoreControllersExist();
+    for (final day in widget.scheduleByDay) {
+      for (final match in day.matches) {
+        final hc = _homeScoreControllers[match.matchNumber];
+        final ac = _awayScoreControllers[match.matchNumber];
+        if (hc == null || ac == null) continue;
+        final (hg, ag) = RandomMatchScores.pickScoreline();
+        hc.text = '$hg';
+        ac.text = '$ag';
+      }
+    }
+    if (mounted) setState(() {});
+  }
+
+  void clearAllScores() {
+    if (!_isEditing) return;
+    _ensureAllScoreControllersExist();
+    for (final day in widget.scheduleByDay) {
+      for (final match in day.matches) {
+        final hc = _homeScoreControllers[match.matchNumber];
+        final ac = _awayScoreControllers[match.matchNumber];
+        hc?.clear();
+        ac?.clear();
+      }
+    }
+    if (mounted) setState(() {});
   }
 
   void cancelEditMode() {
