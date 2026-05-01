@@ -162,7 +162,10 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           TeamsScreen(teams: _data.teams),
           PlayersScreen(teams: _data.teams),
-          const TableScreen(),
+          TableScreen(
+            scheduleByDay: _data.scheduleByDay,
+            teams: _data.teams,
+          ),
         ],
       ),
       bottomNavigationBar: NavigationBar(
