@@ -74,8 +74,10 @@ abstract final class GroupStandingsCalculator {
     final t = name.trim();
     if (t.isEmpty) return true;
     if (t.startsWith('Group ') || t.startsWith('Match ')) return true;
-    if (RegExp(r'^[A-L]-[123]$').hasMatch(t.toUpperCase())) return true;
-    return RegExp(r'^[A-L](?:/[A-L])+-3$').hasMatch(t.toUpperCase());
+    final u = t.toUpperCase();
+    if (RegExp(r'^[A-L]-[123]$').hasMatch(u)) return true;
+    if (RegExp(r'^[123][A-L]$').hasMatch(u)) return true;
+    return RegExp(r'^[A-L](?:/[A-L])+-3$').hasMatch(u);
   }
 
   static (int, int)? parseScore(MatchFixture m) {

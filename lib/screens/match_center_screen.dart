@@ -178,10 +178,12 @@ class _MatchCenterScreenState extends State<MatchCenterScreen> {
   }
 
   Widget _heroTeam(BuildContext context, String teamName) {
+    final u = teamName.trim().toUpperCase();
     final isPlaceholder = teamName.startsWith('Group ') ||
         teamName.startsWith('Match ') ||
-        RegExp(r'^[A-L]-[123]$').hasMatch(teamName.toUpperCase()) ||
-        RegExp(r'^[A-L](?:/[A-L])+-3$').hasMatch(teamName.toUpperCase());
+        RegExp(r'^[A-L]-[123]$').hasMatch(u) ||
+        RegExp(r'^[123][A-L]$').hasMatch(u) ||
+        RegExp(r'^[A-L](?:/[A-L])+-3$').hasMatch(u);
     final team = _findTeamByName(teamName);
     final canOpenTeam = !isPlaceholder && team != null;
 

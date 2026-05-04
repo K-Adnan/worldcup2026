@@ -288,6 +288,10 @@ class ScheduleScreenState extends State<ScheduleScreen> {
     if (tokenMatch != null) {
       groups.add('Group ${tokenMatch.group(1)}');
     }
+    final fifaToken = RegExp(r'^[123]([A-L])$').firstMatch(normalized);
+    if (fifaToken != null) {
+      groups.add('Group ${fifaToken.group(1)}');
+    }
 
     final combinedThirdPlace = RegExp(r'^([A-L](?:/[A-L])+)-3$').firstMatch(normalized);
     if (combinedThirdPlace != null) {
@@ -907,11 +911,13 @@ class ScheduleScreenState extends State<ScheduleScreen> {
     String? score,
   }) {
     final tn = teamName.trim();
+    final u = tn.toUpperCase();
     final isPlaceholder = tn.isEmpty ||
         tn.startsWith('Group ') ||
         tn.startsWith('Match ') ||
-        RegExp(r'^[A-L]-[123]$').hasMatch(tn.toUpperCase()) ||
-        RegExp(r'^[A-L](?:/[A-L])+-3$').hasMatch(tn.toUpperCase());
+        RegExp(r'^[A-L]-[123]$').hasMatch(u) ||
+        RegExp(r'^[123][A-L]$').hasMatch(u) ||
+        RegExp(r'^[A-L](?:/[A-L])+-3$').hasMatch(u);
     final controller = isHome
         ? _homeScoreControllers[matchNumber]
         : _awayScoreControllers[matchNumber];
