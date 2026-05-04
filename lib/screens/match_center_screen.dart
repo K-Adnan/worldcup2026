@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../data/world_cup_data.dart';
 import '../utils/flag_asset.dart';
+import '../utils/knockout_round32_resolver.dart';
 import 'team_detail_screen.dart';
 import 'widgets/match_pitch.dart';
 
@@ -13,10 +14,14 @@ class MatchCenterScreen extends StatefulWidget {
     super.key,
     required this.match,
     required this.teams,
+    this.allScheduleMatchesForBracket,
   });
 
   final MatchFixture match;
   final List<TeamInfo> teams;
+
+  /// Full schedule (from [WorldCupData]) so Round of 32 slots can be re-resolved after Firestore refresh.
+  final List<MatchFixture>? allScheduleMatchesForBracket;
 
   @override
   State<MatchCenterScreen> createState() => _MatchCenterScreenState();
@@ -39,7 +44,12 @@ class _MatchCenterScreenState extends State<MatchCenterScreen> {
     if (!doc.exists) return widget.match;
     final data = doc.data();
     if (data == null) return widget.match;
-    return MatchFixture.fromJson(data);
+    var updated = MatchFixture.fromJson(data);
+    final ctx = widget.allScheduleMatchesForBracket;
+    if (ctx != null && ctx.isNotEmpty) {
+      updated = KnockoutRound32Resolver.applyToSingle(updated, ctx, widget.teams);
+    }
+    return updated;
   }
 
   @override

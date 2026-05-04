@@ -4,6 +4,7 @@ import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 import '../data/world_cup_data.dart';
 import '../utils/flag_asset.dart';
+import '../utils/group_standings_calculator.dart';
 
 Widget _stripeGradientHeader(String titleUpper, {double fontSize = 20, bool expandTitle = false}) {
   return Container(
@@ -75,237 +76,22 @@ class TableScreen extends StatefulWidget {
 
   static int get _sectionCount => _groupLetters.length + 1;
 
-  static List<MatchFixture> _allMatches(List<DaySchedule> days) {
-    final out = <MatchFixture>[];
-    for (final d in days) {
-      out.addAll(d.matches);
-    }
-    return out;
-  }
+  static List<MatchFixture> _allMatches(List<DaySchedule> days) =>
+      GroupStandingsCalculator.allMatchesFromDays(days);
 
-  static bool _isPlaceholderTeam(String name) {
-    final t = name.trim();
-    if (t.isEmpty) return true;
-    if (t.startsWith('Group ') || t.startsWith('Match ')) return true;
-    if (RegExp(r'^[A-L]-[123]$').hasMatch(t.toUpperCase())) return true;
-    return RegExp(r'^[A-L](?:/[A-L])+-3$').hasMatch(t.toUpperCase());
-  }
-
-  static (int, int)? _parseScore(MatchFixture m) {
-    final h = int.tryParse(m.homeScore.trim());
-    final a = int.tryParse(m.awayScore.trim());
-    if (h == null || a == null) return null;
-    return (h, a);
-  }
-
-  static Map<String, _RunningStats> _statsForGroup(
-    String groupLabel,
+  /// Standings rows for one group (`Group X` label), identical rules to bracket resolution.
+  static List<GroupStandingRow> _sortedGroupRows(
+    String groupLabelText,
     List<MatchFixture> allMatches,
     List<TeamInfo> teamList,
   ) {
-    final names = <String>{};
-    for (final t in teamList) {
-      if ((t.group ?? '').trim() == groupLabel) names.add(t.name);
-    }
-    for (final m in allMatches) {
-      if (m.stage.trim() != groupLabel) continue;
-      if (!_isPlaceholderTeam(m.homeTeam)) names.add(m.homeTeam);
-      if (!_isPlaceholderTeam(m.awayTeam)) names.add(m.awayTeam);
-    }
-    final stats = <String, _RunningStats>{for (final n in names) n: _RunningStats()};
-    for (final m in allMatches) {
-      if (m.stage.trim() != groupLabel) continue;
-      if (_isPlaceholderTeam(m.homeTeam) || _isPlaceholderTeam(m.awayTeam)) continue;
-      final parsed = _parseScore(m);
-      if (parsed == null) continue;
-      final (hg, ag) = parsed;
-      final home = stats[m.homeTeam];
-      final away = stats[m.awayTeam];
-      if (home == null || away == null) continue;
-      home.goalsFor += hg;
-      home.goalsAgainst += ag;
-      away.goalsFor += ag;
-      away.goalsAgainst += hg;
-      if (hg > ag) {
-        home.wins++;
-        away.losses++;
-      } else if (hg < ag) {
-        home.losses++;
-        away.wins++;
-      } else {
-        home.draws++;
-        away.draws++;
-      }
-    }
-    return stats;
-  }
-
-  static List<MatchFixture> _groupStageMatches(String groupLabel, List<MatchFixture> allMatches) {
-    final out = <MatchFixture>[];
-    for (final m in allMatches) {
-      if (m.stage.trim() != groupLabel) continue;
-      if (_isPlaceholderTeam(m.homeTeam) || _isPlaceholderTeam(m.awayTeam)) continue;
-      out.add(m);
-    }
-    return out;
-  }
-
-  static List<_StandingRow> _sortedStandings(
-    String groupLabel,
-    List<MatchFixture> allMatches,
-    Map<String, _RunningStats> stats,
-  ) {
-    final groupMatches = _groupStageMatches(groupLabel, allMatches);
-    final names = stats.keys.toList()
-      ..sort((a, b) => stats[b]!.points.compareTo(stats[a]!.points));
-
-    final orderedKeys = <String>[];
-    var i = 0;
-    while (i < names.length) {
-      var j = i + 1;
-      final p = stats[names[i]]!.points;
-      while (j < names.length && stats[names[j]]!.points == p) {
-        j++;
-      }
-      final bucket = names.sublist(i, j);
-      if (bucket.length == 1) {
-        orderedKeys.add(bucket.single);
-      } else {
-        orderedKeys.addAll(_resolveHeadToHeadOrder(bucket, stats, groupMatches));
-      }
-      i = j;
-    }
-
-    return List<_StandingRow>.generate(orderedKeys.length, (idx) {
-      final key = orderedKeys[idx];
-      final e = stats[key]!;
-      return _StandingRow(
-        rank: idx + 1,
-        team: key,
-        points: e.points,
-        wins: e.wins,
-        draws: e.draws,
-        losses: e.losses,
-        goalsFor: e.goalsFor,
-        goalsAgainst: e.goalsAgainst,
-      );
-    });
-  }
-
-  static Map<String, _HeadToHeadMini> _computeHeadToHeadMini(
-    Set<String> tieSubset,
-    List<MatchFixture> groupMatches,
-  ) {
-    final map = <String, _HeadToHeadMini>{for (final t in tieSubset) t: _HeadToHeadMini()};
-    for (final m in groupMatches) {
-      final h = m.homeTeam.trim();
-      final a = m.awayTeam.trim();
-      if (!tieSubset.contains(h) || !tieSubset.contains(a)) continue;
-      final parsed = _parseScore(m);
-      if (parsed == null) continue;
-      final (hg, ag) = parsed;
-      final miH = map[h]!;
-      final miA = map[a]!;
-      miH.goalsFor += hg;
-      miH.goalsAgainst += ag;
-      miA.goalsFor += ag;
-      miA.goalsAgainst += hg;
-      if (hg > ag) {
-        miH.wins++;
-        miA.losses++;
-      } else if (hg < ag) {
-        miH.losses++;
-        miA.wins++;
-      } else {
-        miH.draws++;
-        miA.draws++;
-      }
-    }
-    return map;
-  }
-
-  static bool _h2hMiniEqual(_HeadToHeadMini x, _HeadToHeadMini y) {
-    return x.points == y.points &&
-        x.goalDifference == y.goalDifference &&
-        x.goalsFor == y.goalsFor;
-  }
-
-  static int _compareHeadToHeadMini(_HeadToHeadMini a, _HeadToHeadMini b) {
-    final cPt = b.points.compareTo(a.points);
-    if (cPt != 0) return cPt;
-    final cGd = b.goalDifference.compareTo(a.goalDifference);
-    if (cGd != 0) return cGd;
-    return b.goalsFor.compareTo(a.goalsFor);
-  }
-
-  static int _compareOverallStats(
-    _RunningStats a,
-    _RunningStats b,
-    String nameA,
-    String nameB,
-  ) {
-    final cGd = b.goalDifference.compareTo(a.goalDifference);
-    if (cGd != 0) return cGd;
-    final cGf = b.goalsFor.compareTo(a.goalsFor);
-    if (cGf != 0) return cGf;
-    return nameA.toLowerCase().compareTo(nameB.toLowerCase());
-  }
-
-  static List<String> _resolveHeadToHeadOrder(
-    List<String> tiedTeams,
-    Map<String, _RunningStats> stats,
-    List<MatchFixture> groupMatches,
-  ) {
-    if (tiedTeams.length <= 1) return List.from(tiedTeams);
-
-    final h2h = _computeHeadToHeadMini(tiedTeams.toSet(), groupMatches);
-    final ref = h2h[tiedTeams.first]!;
-    final allMiniEqual = tiedTeams.every((t) => _h2hMiniEqual(h2h[t]!, ref));
-    if (allMiniEqual) {
-      final out = List<String>.from(tiedTeams)
-        ..sort(
-          (a, b) => _compareOverallStats(stats[a]!, stats[b]!, a, b),
-        );
-      return out;
-    }
-
-    final sorted = List<String>.from(tiedTeams)
-      ..sort((a, b) => _compareHeadToHeadMini(h2h[a]!, h2h[b]!));
-
-    final ordered = <String>[];
-    var k = 0;
-    while (k < sorted.length) {
-      var m = k + 1;
-      while (m < sorted.length && _h2hMiniEqual(h2h[sorted[m]]!, h2h[sorted[k]]!)) {
-        m++;
-      }
-      final group = sorted.sublist(k, m);
-      if (group.length == 1) {
-        ordered.add(group.single);
-      } else {
-        ordered.addAll(_resolveHeadToHeadOrder(group, stats, groupMatches));
-      }
-      k = m;
-    }
-    return ordered;
-  }
-
-  static _RunningStats _runningStatsFromStandingRow(_StandingRow r) {
-    final s = _RunningStats()
-      ..wins = r.wins
-      ..draws = r.draws
-      ..losses = r.losses
-      ..goalsFor = r.goalsFor
-      ..goalsAgainst = r.goalsAgainst;
-    return s;
-  }
-
-  static int _compareThirdPlacedAcrossGroups(_StandingRow a, _StandingRow b) {
-    final cPts = b.points.compareTo(a.points);
-    if (cPts != 0) return cPts;
-    final sa = _runningStatsFromStandingRow(a);
-    final sb = _runningStatsFromStandingRow(b);
-    return _compareOverallStats(sa, sb, a.team, b.team);
+    final stats =
+        GroupStandingsCalculator.statsForGroup(groupLabelText, allMatches, teamList);
+    return GroupStandingsCalculator.sortedStandingRows(
+      groupLabelText,
+      allMatches,
+      stats,
+    );
   }
 
   static List<_ThirdPlaceRankingRow> _sortedThirdPlaceRanking(
@@ -315,13 +101,15 @@ class TableScreen extends StatefulWidget {
     final picks = <_ThirdPlacePick>[];
     for (final letter in _groupLetters) {
       final label = _groupLabel(letter);
-      final raw = _statsForGroup(label, allMatches, teamList);
-      final rows = _sortedStandings(label, allMatches, raw);
+      final rows = _sortedGroupRows(label, allMatches, teamList);
       if (rows.length < 3) continue;
       picks.add(_ThirdPlacePick(groupLabel: label, thirdPlacedRow: rows[2]));
     }
     picks.sort(
-      (a, b) => _compareThirdPlacedAcrossGroups(a.thirdPlacedRow, b.thirdPlacedRow),
+      (a, b) => GroupStandingsCalculator.compareThirdPlaceAcrossGroups(
+        a.thirdPlacedRow,
+        b.thirdPlacedRow,
+      ),
     );
     return List<_ThirdPlaceRankingRow>.generate(picks.length, (i) {
       final pick = picks[i];
@@ -335,18 +123,6 @@ class TableScreen extends StatefulWidget {
 
   @override
   State<TableScreen> createState() => _TableScreenState();
-}
-
-class _HeadToHeadMini {
-  int wins = 0;
-  int draws = 0;
-  int losses = 0;
-  int goalsFor = 0;
-  int goalsAgainst = 0;
-
-  int get points => wins * 3 + draws;
-
-  int get goalDifference => goalsFor - goalsAgainst;
 }
 
 class _TableScreenState extends State<TableScreen> {
@@ -505,10 +281,8 @@ class _TableScreenState extends State<TableScreen> {
                 }
                 final letter = TableScreen._groupLetters[index];
                 final label = TableScreen._groupLabel(letter);
-                final raw =
-                    TableScreen._statsForGroup(label, allMatches, widget.teams);
                 final rows =
-                    TableScreen._sortedStandings(label, allMatches, raw);
+                    TableScreen._sortedGroupRows(label, allMatches, widget.teams);
 
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 24),
@@ -551,7 +325,7 @@ class _ThirdPlacePick {
   const _ThirdPlacePick({required this.groupLabel, required this.thirdPlacedRow});
 
   final String groupLabel;
-  final _StandingRow thirdPlacedRow;
+  final GroupStandingRow thirdPlacedRow;
 }
 
 class _ThirdPlaceRankingRow {
@@ -563,7 +337,7 @@ class _ThirdPlaceRankingRow {
 
   final int leaderboardRank;
   final String sourceGroupLabel;
-  final _StandingRow row;
+  final GroupStandingRow row;
 }
 
 class _ThirdPlaceRankingCard extends StatelessWidget {
@@ -631,7 +405,7 @@ class _ThirdPlacesRankingsBody extends StatelessWidget {
   static Color _rowFill(int leaderboardRank) =>
       leaderboardRank <= 8 ? _topBandGreen : _outerBandGrey;
 
-  static String _signedGoalDiff(_StandingRow r) {
+  static String _signedGoalDiff(GroupStandingRow r) {
     final d = r.goalsFor - r.goalsAgainst;
     if (d > 0) return '+$d';
     return '$d';
@@ -764,7 +538,7 @@ class _ThirdPlacesRankingsBody extends StatelessWidget {
 class _StandingsTable extends StatelessWidget {
   const _StandingsTable({required this.rows});
 
-  final List<_StandingRow> rows;
+  final List<GroupStandingRow> rows;
 
   static Color _rowBackground(int rank) {
     switch (rank) {
@@ -926,36 +700,3 @@ class _StandingsTable extends StatelessWidget {
   }
 }
 
-class _RunningStats {
-  int wins = 0;
-  int draws = 0;
-  int losses = 0;
-  int goalsFor = 0;
-  int goalsAgainst = 0;
-
-  int get points => wins * 3 + draws;
-
-  int get goalDifference => goalsFor - goalsAgainst;
-}
-
-class _StandingRow {
-  const _StandingRow({
-    required this.rank,
-    required this.team,
-    required this.points,
-    required this.wins,
-    required this.draws,
-    required this.losses,
-    required this.goalsFor,
-    required this.goalsAgainst,
-  });
-
-  final int rank;
-  final String team;
-  final int points;
-  final int wins;
-  final int draws;
-  final int losses;
-  final int goalsFor;
-  final int goalsAgainst;
-}

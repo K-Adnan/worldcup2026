@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../utils/knockout_round32_resolver.dart';
+
 /// One pitch slot assignment (player on a formation dot) for Match Centre.
 class PitchSlotPlayer {
   const PitchSlotPlayer({this.number, this.name = ''});
@@ -125,6 +127,42 @@ class MatchFixture {
           : '4-4-2',
       homeSlotPlayers: _parsePitchSlotPlayers(json['homeSlotPlayers']),
       awaySlotPlayers: _parsePitchSlotPlayers(json['awaySlotPlayers']),
+    );
+  }
+
+  MatchFixture copyWith({
+    int? matchNumber,
+    String? date,
+    String? time,
+    String? homeTeam,
+    String? awayTeam,
+    String? broadcaster,
+    String? stage,
+    String? stadium,
+    String? city,
+    String? homeScore,
+    String? awayScore,
+    String? homeFormation,
+    String? awayFormation,
+    List<PitchSlotPlayer>? homeSlotPlayers,
+    List<PitchSlotPlayer>? awaySlotPlayers,
+  }) {
+    return MatchFixture(
+      matchNumber: matchNumber ?? this.matchNumber,
+      date: date ?? this.date,
+      time: time ?? this.time,
+      homeTeam: homeTeam ?? this.homeTeam,
+      awayTeam: awayTeam ?? this.awayTeam,
+      broadcaster: broadcaster ?? this.broadcaster,
+      stage: stage ?? this.stage,
+      stadium: stadium ?? this.stadium,
+      city: city ?? this.city,
+      homeScore: homeScore ?? this.homeScore,
+      awayScore: awayScore ?? this.awayScore,
+      homeFormation: homeFormation ?? this.homeFormation,
+      awayFormation: awayFormation ?? this.awayFormation,
+      homeSlotPlayers: homeSlotPlayers ?? this.homeSlotPlayers,
+      awaySlotPlayers: awaySlotPlayers ?? this.awaySlotPlayers,
     );
   }
 }
@@ -300,9 +338,11 @@ class WorldCupDataLoader {
       grouped.putIfAbsent(match.date, () => <MatchFixture>[]).add(match);
     }
 
-    final scheduleByDay = grouped.entries
+    var scheduleByDay = grouped.entries
         .map((entry) => DaySchedule(date: entry.key, matches: entry.value))
         .toList();
+
+    scheduleByDay = KnockoutRound32Resolver.apply(scheduleByDay, teams);
 
     return WorldCupData(
       scheduleByDay: scheduleByDay,

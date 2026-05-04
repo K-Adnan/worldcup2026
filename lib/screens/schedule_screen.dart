@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 import '../data/world_cup_data.dart';
+import '../utils/group_standings_calculator.dart';
 import 'match_center_screen.dart';
 import 'team_detail_screen.dart';
 import '../utils/flag_asset.dart';
@@ -354,6 +355,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
     _ensureAllScoreControllersExist();
     for (final day in widget.scheduleByDay) {
       for (final match in day.matches) {
+        if (!GroupStandingsCalculator.isGroupStage(match.stage)) continue;
         final hc = _homeScoreControllers[match.matchNumber];
         final ac = _awayScoreControllers[match.matchNumber];
         if (hc == null || ac == null) continue;
@@ -749,7 +751,12 @@ class ScheduleScreenState extends State<ScheduleScreen> {
       onTap: () {
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (_) => MatchCenterScreen(match: match, teams: widget.teams),
+            builder: (_) => MatchCenterScreen(
+              match: match,
+              teams: widget.teams,
+              allScheduleMatchesForBracket:
+                  GroupStandingsCalculator.allMatchesFromDays(widget.scheduleByDay),
+            ),
           ),
         );
       },
@@ -899,10 +906,12 @@ class ScheduleScreenState extends State<ScheduleScreen> {
     required int matchNumber,
     String? score,
   }) {
-    final isPlaceholder = teamName.startsWith('Group ') ||
-        teamName.startsWith('Match ') ||
-        RegExp(r'^[A-L]-[123]$').hasMatch(teamName.toUpperCase()) ||
-        RegExp(r'^[A-L](?:/[A-L])+-3$').hasMatch(teamName.toUpperCase());
+    final tn = teamName.trim();
+    final isPlaceholder = tn.isEmpty ||
+        tn.startsWith('Group ') ||
+        tn.startsWith('Match ') ||
+        RegExp(r'^[A-L]-[123]$').hasMatch(tn.toUpperCase()) ||
+        RegExp(r'^[A-L](?:/[A-L])+-3$').hasMatch(tn.toUpperCase());
     final controller = isHome
         ? _homeScoreControllers[matchNumber]
         : _awayScoreControllers[matchNumber];
