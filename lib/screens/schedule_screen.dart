@@ -938,29 +938,36 @@ class ScheduleScreenState extends State<ScheduleScreen> {
         children: [
           GestureDetector(
             onTap: canOpenTeam ? openTeam : null,
-            child: Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.08),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
+            behavior: HitTestBehavior.opaque,
+            child: SizedBox(
+              width: 100,
+              height: 44,
+              child: Center(
+                child: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.08),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              child: CircleAvatar(
-                radius: 18,
-                backgroundColor: Colors.white,
-                child: isPlaceholder
-                    ? const Icon(Icons.help_outline, size: 16, color: Colors.grey)
-                    : ClipOval(
-                  child: SvgPicture.asset(
-                    roundFlagAssetForTeam(teamName),
-                    key: ValueKey(teamName),
-                    width: 36,
-                    height: 36,
-                    fit: BoxFit.cover,
+                  child: CircleAvatar(
+                    radius: 18,
+                    backgroundColor: Colors.white,
+                    child: isPlaceholder
+                        ? const Icon(Icons.help_outline, size: 16, color: Colors.grey)
+                        : ClipOval(
+                            child: SvgPicture.asset(
+                              roundFlagAssetForTeam(teamName),
+                              key: ValueKey(teamName),
+                              width: 36,
+                              height: 36,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
                   ),
                 ),
               ),
@@ -977,12 +984,16 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                     );
                   }
                 : null,
-            child: Text(
-              teamName,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+            behavior: HitTestBehavior.opaque,
+            child: SizedBox(
+              width: double.infinity,
+              child: Text(
+                teamName,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ),
           // Score Display

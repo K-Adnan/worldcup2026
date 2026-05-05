@@ -7,9 +7,16 @@ import 'team_detail_screen.dart';
 import '../utils/flag_asset.dart';
 
 class TeamsScreen extends StatefulWidget {
-  const TeamsScreen({super.key, required this.teams});
+  const TeamsScreen({
+    super.key,
+    required this.teams,
+    required this.starredTeams,
+    required this.onToggleStarredTeam,
+  });
 
   final List<TeamInfo> teams;
+  final Set<String> starredTeams;
+  final ValueChanged<String> onToggleStarredTeam;
 
   @override
   State<TeamsScreen> createState() => _TeamsScreenState();
@@ -257,21 +264,26 @@ class _TeamsScreenState extends State<TeamsScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
+                    IconButton(
+                      tooltip: widget.starredTeams.contains(team.name)
+                          ? 'Remove from starred teams'
+                          : 'Add to starred teams',
+                      visualDensity: VisualDensity.compact,
+                      onPressed: () => widget.onToggleStarredTeam(team.name),
+                      icon: Icon(
+                        widget.starredTeams.contains(team.name)
+                            ? Icons.star
+                            : Icons.star_outline,
+                        color: const Color(0xFFFEC20C),
+                        size: 20,
+                      ),
+                    ),
                     Text(
                       '€${_formatMarketValue(value)}',
                       style: GoogleFonts.inter(
                         fontSize: 14,
                         fontWeight: FontWeight.w900,
                         color: const Color(0xFF1B8F3A), // Football Green
-                      ),
-                    ),
-                    Text(
-                      'Market Value',
-                      style: TextStyle(
-                        fontSize: 8,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey[400],
-                        letterSpacing: 1,
                       ),
                     ),
                   ],

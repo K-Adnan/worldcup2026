@@ -6,9 +6,16 @@ import 'players_screen.dart';
 import 'teams_screen.dart';
 
 class SearchScreen extends StatelessWidget {
-  const SearchScreen({super.key, required this.teams});
+  const SearchScreen({
+    super.key,
+    required this.teams,
+    required this.starredTeams,
+    required this.onToggleStarredTeam,
+  });
 
   final List<TeamInfo> teams;
+  final Set<String> starredTeams;
+  final ValueChanged<String> onToggleStarredTeam;
 
   @override
   Widget build(BuildContext context) {
@@ -81,7 +88,11 @@ class SearchScreen extends StatelessWidget {
               color: const Color(0xFFF5F7F9), // Subtle light grey background
               child: TabBarView(
                 children: [
-                  TeamsScreen(teams: teams),
+                  TeamsScreen(
+                    teams: teams,
+                    starredTeams: starredTeams,
+                    onToggleStarredTeam: onToggleStarredTeam,
+                  ),
                   PlayersScreen(teams: teams),
                 ],
               ),

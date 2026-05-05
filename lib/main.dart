@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'data/world_cup_data.dart';
 import 'firebase_options.dart';
+import 'screens/home_screen.dart';
 import 'screens/schedule_screen.dart';
 import 'screens/table_screen.dart';
 import 'screens/search_screen.dart';
@@ -79,8 +81,10 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  static const String _starredTeamsPrefsKey = 'starred_teams';
   int _selectedIndex = 0;
   late WorldCupData _data;
+  final Set<String> _starredTeams = <String>{};
   final GlobalKey<ScheduleScreenState> _scheduleKey =
       GlobalKey<ScheduleScreenState>();
 
@@ -88,6 +92,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _data = widget.data;
+    _loadStarredTeams();
   }
 
   Future<void> _refreshFromFirestore() async {
@@ -98,10 +103,40 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  Future<void> _loadStarredTeams() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedTeams = prefs.getStringList(_starredTeamsPrefsKey) ?? const [];
+    if (!mounted) return;
+    setState(() {
+      _starredTeams
+        ..clear()
+        ..addAll(savedTeams);
+    });
+  }
+
+  Future<void> _persistStarredTeams() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(
+      _starredTeamsPrefsKey,
+      _starredTeams.toList()..sort(),
+    );
+  }
+
+  void _toggleStarredTeam(String teamName) {
+    setState(() {
+      if (_starredTeams.contains(teamName)) {
+        _starredTeams.remove(teamName);
+      } else {
+        _starredTeams.add(teamName);
+      }
+    });
+    _persistStarredTeams();
+  }
+
   @override
   Widget build(BuildContext context) {
     final scheduleState = _scheduleKey.currentState;
-    final showScheduleActions = _selectedIndex == 0;
+    final showScheduleActions = _selectedIndex == 1;
     final scheduleReady = scheduleState != null;
     final isEditing = scheduleState?.isEditing ?? false;
     final isSaving = scheduleState?.isSaving ?? false;
@@ -174,6 +209,11 @@ class _HomeScreenState extends State<HomeScreen> {
       body: IndexedStack(
         index: _selectedIndex,
         children: [
+          HomeTabScreen(
+            scheduleByDay: _data.scheduleByDay,
+            teams: _data.teams,
+            starredTeams: _starredTeams,
+          ),
           ScheduleScreen(
             key: _scheduleKey,
             scheduleByDay: _data.scheduleByDay,
@@ -183,7 +223,11 @@ class _HomeScreenState extends State<HomeScreen> {
               if (mounted) setState(() {});
             },
           ),
-          SearchScreen(teams: _data.teams),
+          SearchScreen(
+            teams: _data.teams,
+            starredTeams: _starredTeams,
+            onToggleStarredTeam: _toggleStarredTeam,
+          ),
           TableScreen(
             scheduleByDay: _data.scheduleByDay,
             teams: _data.teams,
@@ -198,6 +242,11 @@ class _HomeScreenState extends State<HomeScreen> {
           });
         },
         destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.home_outlined),
+            selectedIcon: Icon(Icons.home),
+            label: 'Home',
+          ),
           NavigationDestination(
             icon: Icon(Icons.schedule_outlined),
             selectedIcon: Icon(Icons.schedule),

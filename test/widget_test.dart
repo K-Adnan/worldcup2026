@@ -41,9 +41,14 @@ void main() {
     await tester.pumpWidget(WorldCupApp(dataFuture: Future.value(sampleData)));
     await tester.pumpAndSettle();
 
+    expect(find.text('Home'), findsOneWidget);
     expect(find.text('Schedule'), findsOneWidget);
     expect(find.text('Search'), findsOneWidget);
     expect(find.text('Table'), findsOneWidget);
+
+    await tester.tap(find.text('Schedule'));
+    await tester.pumpAndSettle();
+
     expect(find.text('THURSDAY 11TH JUNE'), findsOneWidget);
     expect(find.text('Mexico'), findsWidgets);
     expect(find.text('South Africa'), findsWidgets);
