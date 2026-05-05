@@ -42,9 +42,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Schedule'), findsOneWidget);
-    expect(find.text('Teams'), findsOneWidget);
+    expect(find.text('Search'), findsOneWidget);
     expect(find.text('Table'), findsOneWidget);
-    expect(find.text('THURSDAY 11TH JUNE 2026'), findsOneWidget);
+    expect(find.text('THURSDAY 11TH JUNE'), findsOneWidget);
     expect(find.text('Mexico'), findsWidgets);
     expect(find.text('South Africa'), findsWidgets);
   });
