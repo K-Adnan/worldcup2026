@@ -42,11 +42,11 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Home'), findsOneWidget);
-    expect(find.text('Schedule'), findsOneWidget);
+    expect(find.text('Tournament'), findsOneWidget);
     expect(find.text('Search'), findsOneWidget);
-    expect(find.text('Table'), findsOneWidget);
+    expect(find.text('Predictor'), findsOneWidget);
 
-    await tester.tap(find.text('Schedule'));
+    await tester.tap(find.text('Tournament'));
     await tester.pumpAndSettle();
 
     expect(find.text('THURSDAY 11TH JUNE'), findsOneWidget);

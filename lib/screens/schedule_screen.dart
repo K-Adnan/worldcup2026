@@ -5,10 +5,13 @@ import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 import '../data/world_cup_data.dart';
 import '../utils/group_standings_calculator.dart';
+import '../utils/prediction_standings.dart';
 import 'match_center_screen.dart';
 import 'team_detail_screen.dart';
 import '../utils/flag_asset.dart';
 import '../utils/random_match_scores.dart';
+
+enum _PredPickStyle { pending, exact, outcomeOnly, wrong }
 
 class ScheduleScreen extends StatefulWidget {
   const ScheduleScreen({
@@ -17,12 +20,20 @@ class ScheduleScreen extends StatefulWidget {
     required this.teams,
     required this.onRefresh,
     this.onEditStateChanged,
+    this.predictorMode = false,
+    this.scaffoldBackgroundColor,
   });
 
   final List<DaySchedule> scheduleByDay;
   final List<TeamInfo> teams;
   final Future<void> Function() onRefresh;
   final VoidCallback? onEditStateChanged;
+
+  /// When true, edits/saves map to Firestore `prediction`, shows actual vs predicted UI.
+  final bool predictorMode;
+
+  /// Background for the fixtures list (defaults: tournament grey, predictor purple tint).
+  final Color? scaffoldBackgroundColor;
 
   @override
   State<ScheduleScreen> createState() => ScheduleScreenState();
@@ -328,17 +339,19 @@ class ScheduleScreenState extends State<ScheduleScreen> {
   void _ensureAllScoreControllersExist() {
     for (final day in widget.scheduleByDay) {
       for (final match in day.matches) {
+        final homeInit = widget.predictorMode
+            ? (match.predictionHomeScore == '-' ? '' : match.predictionHomeScore)
+            : (match.homeScore == '-' ? '' : match.homeScore);
+        final awayInit = widget.predictorMode
+            ? (match.predictionAwayScore == '-' ? '' : match.predictionAwayScore)
+            : (match.awayScore == '-' ? '' : match.awayScore);
         _homeScoreControllers.putIfAbsent(
           match.matchNumber,
-          () => TextEditingController(
-            text: match.homeScore == '-' ? '' : match.homeScore,
-          ),
+          () => TextEditingController(text: homeInit),
         );
         _awayScoreControllers.putIfAbsent(
           match.matchNumber,
-          () => TextEditingController(
-            text: match.awayScore == '-' ? '' : match.awayScore,
-          ),
+          () => TextEditingController(text: awayInit),
         );
       }
     }
@@ -359,7 +372,15 @@ class ScheduleScreenState extends State<ScheduleScreen> {
     _ensureAllScoreControllersExist();
     for (final day in widget.scheduleByDay) {
       for (final match in day.matches) {
-        if (!GroupStandingsCalculator.isGroupStage(match.stage)) continue;
+        if (widget.predictorMode) {
+          if (GroupStandingsCalculator.parseScore(match) != null) continue;
+          if (GroupStandingsCalculator.isPlaceholderTeamName(match.homeTeam.trim()) ||
+              GroupStandingsCalculator.isPlaceholderTeamName(match.awayTeam.trim())) {
+            continue;
+          }
+        } else {
+          if (!GroupStandingsCalculator.isGroupStage(match.stage)) continue;
+        }
         final hc = _homeScoreControllers[match.matchNumber];
         final ac = _awayScoreControllers[match.matchNumber];
         if (hc == null || ac == null) continue;
@@ -376,6 +397,10 @@ class ScheduleScreenState extends State<ScheduleScreen> {
     _ensureAllScoreControllersExist();
     for (final day in widget.scheduleByDay) {
       for (final match in day.matches) {
+        if (widget.predictorMode &&
+            GroupStandingsCalculator.parseScore(match) != null) {
+          continue;
+        }
         final hc = _homeScoreControllers[match.matchNumber];
         final ac = _awayScoreControllers[match.matchNumber];
         hc?.clear();
@@ -410,6 +435,10 @@ class ScheduleScreenState extends State<ScheduleScreen> {
 
       for (final day in widget.scheduleByDay) {
         for (final match in day.matches) {
+          if (widget.predictorMode &&
+              GroupStandingsCalculator.parseScore(match) != null) {
+            continue;
+          }
           final homeController = _homeScoreControllers[match.matchNumber];
           final awayController = _awayScoreControllers[match.matchNumber];
           if (homeController == null || awayController == null) continue;
@@ -417,17 +446,33 @@ class ScheduleScreenState extends State<ScheduleScreen> {
           final homeScore = _normalizeScoreInput(homeController.text);
           final awayScore = _normalizeScoreInput(awayController.text);
 
-          if (homeScore == match.homeScore && awayScore == match.awayScore) {
-            continue;
+          if (widget.predictorMode) {
+            if (homeScore == match.predictionHomeScore &&
+                awayScore == match.predictionAwayScore) {
+              continue;
+            }
+          } else {
+            if (homeScore == match.homeScore && awayScore == match.awayScore) {
+              continue;
+            }
           }
 
           final docRef = firestore
               .collection('schedule')
               .doc(match.matchNumber.toString());
-          batch.update(docRef, {
-            'homeScore': homeScore,
-            'awayScore': awayScore,
-          });
+          if (widget.predictorMode) {
+            batch.update(docRef, {
+              'prediction': {
+                'homeScore': homeScore,
+                'awayScore': awayScore,
+              },
+            });
+          } else {
+            batch.update(docRef, {
+              'homeScore': homeScore,
+              'awayScore': awayScore,
+            });
+          }
           updates++;
         }
       }
@@ -444,7 +489,9 @@ class ScheduleScreenState extends State<ScheduleScreen> {
       });
       widget.onEditStateChanged?.call();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Results saved')),
+        SnackBar(
+          content: Text(widget.predictorMode ? 'Predictions saved' : 'Results saved'),
+        ),
       );
     } catch (_) {
       if (!mounted) return;
@@ -480,7 +527,10 @@ class ScheduleScreenState extends State<ScheduleScreen> {
 
     return Scaffold(
       key: _scaffoldKey,
-      backgroundColor: const Color(0xFFF5F7F9), // Light grey background
+      backgroundColor: widget.scaffoldBackgroundColor ??
+          (widget.predictorMode
+              ? const Color(0xFFEDE7F6)
+              : const Color(0xFFF5F7F9)),
       endDrawer: _buildFilterDrawer(context),
       body: Column(
         children: [
@@ -759,7 +809,14 @@ class ScheduleScreenState extends State<ScheduleScreen> {
               match: match,
               teams: widget.teams,
               allScheduleMatchesForBracket:
-                  GroupStandingsCalculator.allMatchesFromDays(widget.scheduleByDay),
+                  GroupStandingsCalculator.allMatchesFromDays(
+                widget.predictorMode
+                    ? PredictionStandings.tableSchedule(
+                        widget.scheduleByDay,
+                        widget.teams,
+                      )
+                    : widget.scheduleByDay,
+              ),
             ),
           ),
         );
@@ -813,10 +870,8 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                           children: [
                             _teamSlot(
                               context,
-                              match.homeTeam,
+                              match,
                               isHome: true,
-                              matchNumber: match.matchNumber,
-                              score: match.homeScore,
                             ),
 
                             // Center Info: Match Number & Time
@@ -839,10 +894,8 @@ class ScheduleScreenState extends State<ScheduleScreen> {
 
                             _teamSlot(
                               context,
-                              match.awayTeam,
+                              match,
                               isHome: false,
-                              matchNumber: match.matchNumber,
-                              score: match.awayScore,
                             ),
                           ],
                         ),
@@ -884,6 +937,40 @@ class ScheduleScreenState extends State<ScheduleScreen> {
     );
   }
 
+  /// Predictor: how to colour "Your pick" vs the actual result.
+  _PredPickStyle _predictionPickStyle(MatchFixture m) {
+    final actual = GroupStandingsCalculator.parseScore(m);
+    if (actual == null) return _PredPickStyle.pending;
+    final ph = int.tryParse(m.predictionHomeScore.trim());
+    final pa = int.tryParse(m.predictionAwayScore.trim());
+    if (ph == null || pa == null) return _PredPickStyle.wrong;
+    final (ah, aa) = actual;
+    if (ph == ah && pa == aa) return _PredPickStyle.exact;
+    if (_scoreOutcome(ah, aa) == _scoreOutcome(ph, pa)) {
+      return _PredPickStyle.outcomeOnly;
+    }
+    return _PredPickStyle.wrong;
+  }
+
+  static int _scoreOutcome(int home, int away) {
+    if (home > away) return 1;
+    if (home < away) return -1;
+    return 0;
+  }
+
+  static Color _colorForPredPick(_PredPickStyle style) {
+    switch (style) {
+      case _PredPickStyle.pending:
+        return const Color(0xFF424242);
+      case _PredPickStyle.exact:
+        return const Color(0xFF1B5E20);
+      case _PredPickStyle.outcomeOnly:
+        return const Color(0xFFFF8F00);
+      case _PredPickStyle.wrong:
+        return const Color(0xFFC62828);
+    }
+  }
+
   Widget _broadcasterBadge(String broadcaster) {
     final color = _getBroadcasterColor(broadcaster);
     return Container(
@@ -905,11 +992,10 @@ class ScheduleScreenState extends State<ScheduleScreen> {
 
   Widget _teamSlot(
     BuildContext context,
-    String teamName, {
+    MatchFixture match, {
     required bool isHome,
-    required int matchNumber,
-    String? score,
   }) {
+    final teamName = isHome ? match.homeTeam : match.awayTeam;
     final tn = teamName.trim();
     final u = tn.toUpperCase();
     final isPlaceholder = tn.isEmpty ||
@@ -919,8 +1005,8 @@ class ScheduleScreenState extends State<ScheduleScreen> {
         RegExp(r'^[123][A-L]$').hasMatch(u) ||
         RegExp(r'^[A-L](?:/[A-L])+-3$').hasMatch(u);
     final controller = isHome
-        ? _homeScoreControllers[matchNumber]
-        : _awayScoreControllers[matchNumber];
+        ? _homeScoreControllers[match.matchNumber]
+        : _awayScoreControllers[match.matchNumber];
 
     final team = _findTeamByName(teamName);
     final canOpenTeam = !isPlaceholder && team != null;
@@ -931,6 +1017,147 @@ class ScheduleScreenState extends State<ScheduleScreen> {
         ),
       );
     }
+
+    if (widget.predictorMode) {
+      final hasActual = GroupStandingsCalculator.parseScore(match) != null;
+      final actualOne = isHome ? match.homeScore : match.awayScore;
+      final predOne = isHome ? match.predictionHomeScore : match.predictionAwayScore;
+      final pickStyle = _predictionPickStyle(match);
+      final predColor = _colorForPredPick(pickStyle);
+      final canEditPrediction =
+          !hasActual && _isEditing && !isPlaceholder && controller != null;
+
+      return Expanded(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            GestureDetector(
+              onTap: canOpenTeam ? openTeam : null,
+              behavior: HitTestBehavior.opaque,
+              child: SizedBox(
+                width: 100,
+                height: 44,
+                child: Center(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.08),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: CircleAvatar(
+                      radius: 18,
+                      backgroundColor: Colors.white,
+                      child: isPlaceholder
+                          ? const Icon(Icons.help_outline, size: 16, color: Colors.grey)
+                          : ClipOval(
+                              child: SvgPicture.asset(
+                                roundFlagAssetForTeam(teamName),
+                                key: ValueKey(teamName),
+                                width: 36,
+                                height: 36,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 4),
+            GestureDetector(
+              onTap: canOpenTeam
+                  ? () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => TeamDetailScreen(team: team),
+                        ),
+                      );
+                    }
+                  : null,
+              behavior: HitTestBehavior.opaque,
+              child: SizedBox(
+                width: double.infinity,
+                child: Text(
+                  teamName,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              hasActual ? actualOne : '-',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w900,
+                color: hasActual ? const Color(0xFF1B5E20) : Colors.grey[400],
+                height: 1,
+              ),
+            ),
+            Text(
+              'Result',
+              style: TextStyle(
+                fontSize: 8,
+                fontWeight: FontWeight.w700,
+                color: Colors.blueGrey[500],
+                letterSpacing: 0.4,
+              ),
+            ),
+            const SizedBox(height: 6),
+            if (canEditPrediction)
+              SizedBox(
+                width: 38,
+                height: 28,
+                child: TextField(
+                  controller: controller,
+                  keyboardType: TextInputType.number,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: predColor,
+                  ),
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide(color: predColor.withValues(alpha: 0.45)),
+                    ),
+                    contentPadding: EdgeInsets.zero,
+                    isDense: true,
+                  ),
+                ),
+              )
+            else
+              Text(
+                (predOne == '-' || predOne.isEmpty) ? '-' : predOne,
+                style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w900,
+                  color: predColor,
+                  height: 1,
+                ),
+              ),
+            Text(
+              'Your pick',
+              style: TextStyle(
+                fontSize: 8,
+                fontWeight: FontWeight.w700,
+                color: predColor.withValues(alpha: 0.75),
+                letterSpacing: 0.3,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final score = isHome ? match.homeScore : match.awayScore;
 
     return Expanded(
       child: Column(
@@ -996,7 +1223,6 @@ class ScheduleScreenState extends State<ScheduleScreen> {
               ),
             ),
           ),
-          // Score Display
           const SizedBox(height: 2),
           if (_isEditing && !isPlaceholder && controller != null)
             SizedBox(
@@ -1014,11 +1240,11 @@ class ScheduleScreenState extends State<ScheduleScreen> {
             )
           else
             Text(
-              score ?? '-',
+              score,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w900,
-                color: score != null ? Colors.black : Colors.grey[300],
+                color: score != '-' ? Colors.black : Colors.grey[300],
                 height: 1,
               ),
             ),

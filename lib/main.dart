@@ -4,9 +4,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'data/world_cup_data.dart';
 import 'firebase_options.dart';
+import 'screens/fixtures_table_screen.dart';
 import 'screens/home_screen.dart';
+import 'screens/predictor_fixtures_table_screen.dart';
 import 'screens/schedule_screen.dart';
-import 'screens/table_screen.dart';
 import 'screens/search_screen.dart';
 
 Future<void> main() async {
@@ -83,9 +84,13 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   static const String _starredTeamsPrefsKey = 'starred_teams';
   int _selectedIndex = 0;
+  int _fixturesTableTab = 0;
+  int _predictorTableTab = 0;
   late WorldCupData _data;
   final Set<String> _starredTeams = <String>{};
   final GlobalKey<ScheduleScreenState> _scheduleKey =
+      GlobalKey<ScheduleScreenState>();
+  final GlobalKey<ScheduleScreenState> _predictorScheduleKey =
       GlobalKey<ScheduleScreenState>();
 
   @override
@@ -136,75 +141,128 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final scheduleState = _scheduleKey.currentState;
-    final showScheduleActions = _selectedIndex == 1;
-    final scheduleReady = scheduleState != null;
-    final isEditing = scheduleState?.isEditing ?? false;
-    final isSaving = scheduleState?.isSaving ?? false;
+    final predictorState = _predictorScheduleKey.currentState;
+
+    final showTournamentFixtureActions =
+        _selectedIndex == 1 && _fixturesTableTab == 0;
+    final showPredictorFixtureActions =
+        _selectedIndex == 3 && _predictorTableTab == 0;
+
+    final scheduleReady = showTournamentFixtureActions
+        ? scheduleState != null
+        : showPredictorFixtureActions
+            ? predictorState != null
+            : false;
+    final isEditing = showTournamentFixtureActions
+        ? (scheduleState?.isEditing ?? false)
+        : showPredictorFixtureActions
+            ? (predictorState?.isEditing ?? false)
+            : false;
+    final isSaving = showTournamentFixtureActions
+        ? (scheduleState?.isSaving ?? false)
+        : showPredictorFixtureActions
+            ? (predictorState?.isSaving ?? false)
+            : false;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('FIFA World Cup 2026'),
-        actions: showScheduleActions
-            ? [
-                if (isEditing) ...[
-                  PopupMenuButton<String>(
-                    tooltip: 'Score tools',
-                    enabled: scheduleReady && !isSaving,
-                    icon: const Icon(Icons.more_vert),
-                    onSelected: (value) {
-                      final schedule = scheduleState;
-                      if (schedule == null || isSaving) return;
-                      if (value == 'random') {
-                        schedule.populateRandomScores();
-                      } else if (value == 'clear') {
-                        schedule.clearAllScores();
-                      }
-                    },
-                    itemBuilder: (context) => const [
-                      PopupMenuItem(
-                        value: 'random',
-                        child: Text('Populate random scores'),
-                      ),
-                      PopupMenuItem(
-                        value: 'clear',
-                        child: Text('Clear all results'),
-                      ),
-                    ],
+        actions: [
+          if (showTournamentFixtureActions) ...[
+            if (isEditing) ...[
+              TextButton(
+                onPressed: (!scheduleReady || isSaving)
+                    ? null
+                    : scheduleState!.cancelEditMode,
+                child: const Text('Cancel'),
+              ),
+              const SizedBox(width: 8),
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: FilledButton(
+                  onPressed: (!scheduleReady || isSaving)
+                      ? null
+                      : scheduleState!.saveResults,
+                  child: isSaving
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Save'),
+                ),
+              ),
+            ] else
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: IconButton(
+                  onPressed:
+                      scheduleState != null ? scheduleState.enterEditMode : null,
+                  icon: const Icon(Icons.edit_outlined),
+                  tooltip: 'Edit results',
+                ),
+              ),
+          ],
+          if (showPredictorFixtureActions) ...[
+            if (isEditing) ...[
+              PopupMenuButton<String>(
+                tooltip: 'Prediction tools',
+                enabled: scheduleReady && !isSaving,
+                icon: const Icon(Icons.more_vert),
+                onSelected: (value) {
+                  final p = predictorState;
+                  if (p == null || isSaving) return;
+                  if (value == 'random') {
+                    p.populateRandomScores();
+                  } else if (value == 'clear') {
+                    p.clearAllScores();
+                  }
+                },
+                itemBuilder: (context) => const [
+                  PopupMenuItem(
+                    value: 'random',
+                    child: Text('Populate random predictions'),
                   ),
-                  TextButton(
-                    onPressed: (!scheduleReady || isSaving)
-                        ? null
-                        : scheduleState.cancelEditMode,
-                    child: const Text('Cancel'),
+                  PopupMenuItem(
+                    value: 'clear',
+                    child: Text('Clear all predictions'),
                   ),
-                  const SizedBox(width: 8),
-                  Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: FilledButton(
-                      onPressed: (!scheduleReady || isSaving)
-                          ? null
-                          : scheduleState.saveResults,
-                      child: isSaving
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Text('Save'),
-                    ),
-                  ),
-                ] else
-                  Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: IconButton(
-                      onPressed:
-                          scheduleReady ? scheduleState.enterEditMode : null,
-                      icon: const Icon(Icons.edit_outlined),
-                      tooltip: 'Edit results',
-                    ),
-                  ),
-              ]
-            : null,
+                ],
+              ),
+              TextButton(
+                onPressed: (!scheduleReady || isSaving)
+                    ? null
+                    : predictorState!.cancelEditMode,
+                child: const Text('Cancel'),
+              ),
+              const SizedBox(width: 8),
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: FilledButton(
+                  onPressed: (!scheduleReady || isSaving)
+                      ? null
+                      : predictorState!.saveResults,
+                  child: isSaving
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Save'),
+                ),
+              ),
+            ] else
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: IconButton(
+                  onPressed:
+                      predictorState != null ? predictorState.enterEditMode : null,
+                  icon: const Icon(Icons.edit_outlined),
+                  tooltip: 'Edit predictions',
+                ),
+              ),
+          ],
+        ],
       ),
       body: IndexedStack(
         index: _selectedIndex,
@@ -214,13 +272,18 @@ class _HomeScreenState extends State<HomeScreen> {
             teams: _data.teams,
             starredTeams: _starredTeams,
           ),
-          ScheduleScreen(
-            key: _scheduleKey,
+          FixturesTableScreen(
+            scheduleKey: _scheduleKey,
             scheduleByDay: _data.scheduleByDay,
             teams: _data.teams,
             onRefresh: _refreshFromFirestore,
             onEditStateChanged: () {
               if (mounted) setState(() {});
+            },
+            onPrimaryTabChanged: (index) {
+              if (_fixturesTableTab != index) {
+                setState(() => _fixturesTableTab = index);
+              }
             },
           ),
           SearchScreen(
@@ -228,9 +291,19 @@ class _HomeScreenState extends State<HomeScreen> {
             starredTeams: _starredTeams,
             onToggleStarredTeam: _toggleStarredTeam,
           ),
-          TableScreen(
+          PredictorFixturesTableScreen(
+            scheduleKey: _predictorScheduleKey,
             scheduleByDay: _data.scheduleByDay,
             teams: _data.teams,
+            onRefresh: _refreshFromFirestore,
+            onEditStateChanged: () {
+              if (mounted) setState(() {});
+            },
+            onPrimaryTabChanged: (index) {
+              if (_predictorTableTab != index) {
+                setState(() => _predictorTableTab = index);
+              }
+            },
           ),
         ],
       ),
@@ -248,9 +321,9 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Home',
           ),
           NavigationDestination(
-            icon: Icon(Icons.schedule_outlined),
-            selectedIcon: Icon(Icons.schedule),
-            label: 'Schedule',
+            icon: Icon(Icons.emoji_events_outlined),
+            selectedIcon: Icon(Icons.emoji_events),
+            label: 'Tournament',
           ),
           NavigationDestination(
             icon: Icon(Icons.search_outlined),
@@ -258,9 +331,9 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Search',
           ),
           NavigationDestination(
-            icon: Icon(Icons.table_chart_outlined),
-            selectedIcon: Icon(Icons.table_chart),
-            label: 'Table',
+            icon: Icon(Icons.psychology_outlined),
+            selectedIcon: Icon(Icons.psychology),
+            label: 'Predictor',
           ),
         ],
       ),

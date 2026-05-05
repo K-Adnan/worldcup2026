@@ -46,12 +46,29 @@ abstract final class KnockoutRound32Resolver {
     return cache;
   }
 
+  static Map<String, bool> _groupCompletionCache(List<MatchFixture> allMatches) {
+    final cache = <String, bool>{};
+    for (final letter in GroupStandingsCalculator.groupLetters) {
+      final label = GroupStandingsCalculator.groupLabel(letter);
+      final groupMatches = allMatches.where((m) => m.stage.trim() == label).toList();
+      final hasFixtures = groupMatches.isNotEmpty;
+      final allPlayed = hasFixtures &&
+          groupMatches.every((m) => GroupStandingsCalculator.parseScore(m) != null);
+      cache[label] = allPlayed;
+    }
+    return cache;
+  }
+
   /// Bit i set iff group `A`+i is among the eight best third-placed teams, or null if tables incomplete.
-  static int? _advancingThirdsMask(Map<String, List<GroupStandingRow>> cacheByGroupLabel) {
+  static int? _advancingThirdsMask(
+    Map<String, List<GroupStandingRow>> cacheByGroupLabel,
+    Map<String, bool> groupCompletedByLabel,
+  ) {
     final letters = GroupStandingsCalculator.groupLetters;
     final thirdRows = <GroupStandingRow>[];
     for (final letter in letters) {
       final label = GroupStandingsCalculator.groupLabel(letter);
+      if (!(groupCompletedByLabel[label] ?? false)) return null;
       final rows = cacheByGroupLabel[label];
       if (rows == null || rows.length < 3) return null;
       thirdRows.add(rows[2]);
@@ -96,6 +113,7 @@ abstract final class KnockoutRound32Resolver {
   static String resolveTeamField(
     String raw,
     Map<String, List<GroupStandingRow>> cacheByGroupLabel, {
+    required Map<String, bool> groupCompletedByLabel,
     required bool isHome,
     required String homeRaw,
     required String awayRaw,
@@ -105,22 +123,25 @@ abstract final class KnockoutRound32Resolver {
 
     final combined = _combinedThirdPath.firstMatch(t.toUpperCase());
     if (combined != null) {
-      final advMask = _advancingThirdsMask(cacheByGroupLabel);
-      if (advMask == null) return '';
+      final advMask = _advancingThirdsMask(cacheByGroupLabel, groupCompletedByLabel);
+      if (advMask == null) return raw;
       final slots = ThirdPlaceMatrixData.thirdSlotsForAdvancingMask(advMask);
-      if (slots == null || slots.length != _winnerColumnsFacingThird.length) return '';
+      if (slots == null || slots.length != _winnerColumnsFacingThird.length) {
+        return raw;
+      }
 
       final opponentRaw = isHome ? awayRaw : homeRaw;
       final col = _winnerThirdColumnIndex(opponentRaw);
-      if (col == null) return '';
+      if (col == null) return raw;
 
       final thirdLetter = slots[col].toUpperCase();
       final allowed = combined.group(1)!.split('/');
-      if (!allowed.contains(thirdLetter)) return '';
+      if (!allowed.contains(thirdLetter)) return raw;
 
       final label = GroupStandingsCalculator.groupLabel(thirdLetter);
+      if (!(groupCompletedByLabel[label] ?? false)) return raw;
       final rows = cacheByGroupLabel[label] ?? const [];
-      if (rows.length < 3) return '';
+      if (rows.length < 3) return raw;
       return rows[2].team;
     }
 
@@ -129,6 +150,7 @@ abstract final class KnockoutRound32Resolver {
     if (f1 != null) {
       final letter = f1.group(1)!;
       final label = GroupStandingsCalculator.groupLabel(letter);
+      if (!(groupCompletedByLabel[label] ?? false)) return raw;
       final rows = cacheByGroupLabel[label] ?? [];
       if (rows.isEmpty) return raw;
       return rows[0].team;
@@ -137,6 +159,7 @@ abstract final class KnockoutRound32Resolver {
     if (f2 != null) {
       final letter = f2.group(1)!;
       final label = GroupStandingsCalculator.groupLabel(letter);
+      if (!(groupCompletedByLabel[label] ?? false)) return raw;
       final rows = cacheByGroupLabel[label] ?? [];
       if (rows.length < 2) return raw;
       return rows[1].team;
@@ -145,6 +168,7 @@ abstract final class KnockoutRound32Resolver {
     if (f3 != null) {
       final letter = f3.group(1)!;
       final label = GroupStandingsCalculator.groupLabel(letter);
+      if (!(groupCompletedByLabel[label] ?? false)) return raw;
       final rows = cacheByGroupLabel[label] ?? [];
       if (rows.length < 3) return raw;
       return rows[2].team;
@@ -157,6 +181,7 @@ abstract final class KnockoutRound32Resolver {
     final letter = m.group(1)!;
     final finish = int.parse(m.group(2)!);
     final label = GroupStandingsCalculator.groupLabel(letter);
+    if (!(groupCompletedByLabel[label] ?? false)) return raw;
     final rows = cacheByGroupLabel[label] ?? [];
     if (finish < 1 || finish > rows.length) {
       return raw;
@@ -170,11 +195,14 @@ abstract final class KnockoutRound32Resolver {
   ) {
     final allMatches = GroupStandingsCalculator.allMatchesFromDays(scheduleByDay);
     final cache = _rankingsCache(allMatches, teams);
+    final groupCompletion = _groupCompletionCache(allMatches);
 
     return scheduleByDay.map((day) {
       return DaySchedule(
         date: day.date,
-        matches: day.matches.map((match) => _maybeResolveMatch(match, cache)).toList(),
+        matches: day.matches
+            .map((match) => _maybeResolveMatch(match, cache, groupCompletion))
+            .toList(),
       );
     }).toList();
   }
@@ -182,14 +210,29 @@ abstract final class KnockoutRound32Resolver {
   static MatchFixture _maybeResolveMatch(
     MatchFixture match,
     Map<String, List<GroupStandingRow>> cache,
+    Map<String, bool> groupCompletion,
   ) {
     if (match.stage.trim() != roundOf32Stage) {
       return match;
     }
     final hr = match.homeTeam;
     final ar = match.awayTeam;
-    final ht = resolveTeamField(hr, cache, isHome: true, homeRaw: hr, awayRaw: ar);
-    final at = resolveTeamField(ar, cache, isHome: false, homeRaw: hr, awayRaw: ar);
+    final ht = resolveTeamField(
+      hr,
+      cache,
+      groupCompletedByLabel: groupCompletion,
+      isHome: true,
+      homeRaw: hr,
+      awayRaw: ar,
+    );
+    final at = resolveTeamField(
+      ar,
+      cache,
+      groupCompletedByLabel: groupCompletion,
+      isHome: false,
+      homeRaw: hr,
+      awayRaw: ar,
+    );
     return match.copyWith(homeTeam: ht, awayTeam: at);
   }
 
@@ -200,6 +243,7 @@ abstract final class KnockoutRound32Resolver {
     List<TeamInfo> teams,
   ) {
     final cache = _rankingsCache(allMatches, teams);
-    return _maybeResolveMatch(match, cache);
+    final groupCompletion = _groupCompletionCache(allMatches);
+    return _maybeResolveMatch(match, cache, groupCompletion);
   }
 }

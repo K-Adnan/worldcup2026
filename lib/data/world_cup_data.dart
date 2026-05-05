@@ -88,6 +88,8 @@ class MatchFixture {
     this.awayFormation = '4-4-2',
     this.homeSlotPlayers,
     this.awaySlotPlayers,
+    this.predictionHomeScore = '-',
+    this.predictionAwayScore = '-',
   });
 
   final int matchNumber;
@@ -105,6 +107,10 @@ class MatchFixture {
   final String awayFormation;
   final List<PitchSlotPlayer>? homeSlotPlayers;
   final List<PitchSlotPlayer>? awaySlotPlayers;
+
+  /// User prediction scores stored under `prediction` on the same Firestore doc.
+  final String predictionHomeScore;
+  final String predictionAwayScore;
 
   factory MatchFixture.fromJson(Map<String, dynamic> json) {
     return MatchFixture(
@@ -127,7 +133,19 @@ class MatchFixture {
           : '4-4-2',
       homeSlotPlayers: _parsePitchSlotPlayers(json['homeSlotPlayers']),
       awaySlotPlayers: _parsePitchSlotPlayers(json['awaySlotPlayers']),
+      predictionHomeScore: _parsePredictionScore(json, isHome: true),
+      predictionAwayScore: _parsePredictionScore(json, isHome: false),
     );
+  }
+
+  static String _parsePredictionScore(Map<String, dynamic> json, {required bool isHome}) {
+    final p = json['prediction'];
+    if (p is! Map) return '-';
+    final key = isHome ? 'homeScore' : 'awayScore';
+    final v = p[key];
+    if (v == null) return '-';
+    final s = v.toString().trim();
+    return s.isEmpty ? '-' : s;
   }
 
   MatchFixture copyWith({
@@ -146,6 +164,8 @@ class MatchFixture {
     String? awayFormation,
     List<PitchSlotPlayer>? homeSlotPlayers,
     List<PitchSlotPlayer>? awaySlotPlayers,
+    String? predictionHomeScore,
+    String? predictionAwayScore,
   }) {
     return MatchFixture(
       matchNumber: matchNumber ?? this.matchNumber,
@@ -163,6 +183,8 @@ class MatchFixture {
       awayFormation: awayFormation ?? this.awayFormation,
       homeSlotPlayers: homeSlotPlayers ?? this.homeSlotPlayers,
       awaySlotPlayers: awaySlotPlayers ?? this.awaySlotPlayers,
+      predictionHomeScore: predictionHomeScore ?? this.predictionHomeScore,
+      predictionAwayScore: predictionAwayScore ?? this.predictionAwayScore,
     );
   }
 }
