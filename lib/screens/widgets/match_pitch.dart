@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../data/world_cup_data.dart';
 import '../../utils/player_position.dart';
@@ -120,9 +121,9 @@ class _MatchPitchState extends State<MatchPitch> {
   }
 
   List<PitchSlotPlayer> _labelsFromInitial(
-    String formation,
-    List<PitchSlotPlayer>? initial,
-  ) {
+      String formation,
+      List<PitchSlotPlayer>? initial,
+      ) {
     final n = _slotCount(formation);
     if (initial != null && initial.length == n) {
       return List<PitchSlotPlayer>.from(initial);
@@ -181,7 +182,6 @@ class _MatchPitchState extends State<MatchPitch> {
     }
   }
 
-  /// Last whitespace-separated token, or the whole string if single token.
   static String _surname(String fullName) {
     final t = fullName.trim();
     if (t.isEmpty) return '';
@@ -190,11 +190,10 @@ class _MatchPitchState extends State<MatchPitch> {
     return parts.last;
   }
 
-  /// Surname for UI; if longer than 12 chars, `first9..last`.
   static String _surnameForDisplay(String fullName) {
     final s = _surname(fullName);
-    if (s.length <= 12) return s;
-    return '${s.substring(0, 11)}.';
+    if (s.length <= 10) return s;
+    return '${s.substring(0, 10)}.';
   }
 
   static PitchSlotPlayer _slotFromKey(String key) {
@@ -254,21 +253,21 @@ class _MatchPitchState extends State<MatchPitch> {
     }).toList();
 
     final current = home ? _homeLabels[slotIndex] : _awayLabels[slotIndex];
-    final squadKeys =
-        eligiblePlayers.map((p) => '${p.number ?? -1}:::${p.name}').toSet();
     final savedKey = _keyForLabel(current) ?? '';
     final orphanAssigned = current.isAssigned &&
         savedKey.isNotEmpty &&
-        !squadKeys.contains(savedKey);
+        !eligiblePlayers.any((p) => '${p.number ?? -1}:::${p.name}' == savedKey);
+
     final picked = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (_) => _SearchablePlayerPicker(
         players: eligiblePlayers,
         savedKey: savedKey,
         orphanAssigned: orphanAssigned,
         orphanLabel: current.name,
-        orphanPosition: _positionForKey(eligiblePlayers, savedKey),
+        orphanPosition: _positionForKey(squad, savedKey),
       ),
     );
 
@@ -300,13 +299,13 @@ class _MatchPitchState extends State<MatchPitch> {
     final startX = (1.0 - widthFactor) / 2;
     return List<double>.generate(
       count,
-      (i) => startX + (i * widthFactor / (count - 1)),
+          (i) => startX + (i * widthFactor / (count - 1)),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    const Color pitchLineColor = Colors.white70;
+    const Color pitchLineColor = Colors.white54;
 
     return Container(
       height: widget.height,
@@ -324,7 +323,14 @@ class _MatchPitchState extends State<MatchPitch> {
           ],
           stops: const [0.0, 0.25, 0.5, 0.75, 1.0],
         ),
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          )
+        ],
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -336,6 +342,7 @@ class _MatchPitchState extends State<MatchPitch> {
           return Stack(
             clipBehavior: Clip.none,
             children: [
+              // Pitch Markings
               Positioned.fill(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -355,8 +362,8 @@ class _MatchPitchState extends State<MatchPitch> {
               ),
               Center(
                 child: Container(
-                  width: widget.height * 0.22,
-                  height: widget.height * 0.22,
+                  width: widget.height * 0.20,
+                  height: widget.height * 0.20,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(color: pitchLineColor, width: 1.5),
@@ -369,6 +376,8 @@ class _MatchPitchState extends State<MatchPitch> {
               _buildPenaltyArea(top: 16, isTop: true, lineColor: pitchLineColor),
               _buildPenaltyArea(bottom: 16, isTop: false, lineColor: pitchLineColor),
               ..._buildCorners(pitchLineColor),
+
+              // Tactical Overlay (Players)
               Positioned.fill(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -395,16 +404,18 @@ class _MatchPitchState extends State<MatchPitch> {
                   ),
                 ),
               ),
+
+              // Modern Formation Selectors
               Positioned(
-                top: 4,
-                left: 8,
-                right: 8,
+                top: 12,
+                left: 20,
+                right: 20,
                 child: _formationDropdown(true),
               ),
               Positioned(
-                bottom: 4,
-                left: 8,
-                right: 8,
+                bottom: 12,
+                left: 20,
+                right: 20,
                 child: _formationDropdown(false),
               ),
             ],
@@ -417,28 +428,28 @@ class _MatchPitchState extends State<MatchPitch> {
   Widget _formationDropdown(bool isHome) {
     final value = isHome ? _homeFormation : _awayFormation;
     return Container(
+      height: 36,
       decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white24, width: 1),
+        color: Colors.black.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white24),
       ),
+      alignment: Alignment.center,
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: value,
           isExpanded: true,
           isDense: true,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          iconEnabledColor: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          icon: const Icon(Icons.shield_outlined, color: Colors.white70, size: 16),
           dropdownColor: const Color(0xFF001D3D),
-          style: const TextStyle(
+          style: GoogleFonts.bebasNeue(
             color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 12,
+            fontSize: 16,
+            letterSpacing: 1.2,
           ),
           items: kFormationOptions
-              .map(
-                (f) => DropdownMenuItem(value: f, child: Text(f)),
-              )
+              .map((f) => DropdownMenuItem(value: f, child: Center(child: Text(f))))
               .toList(),
           onChanged: (v) async {
             if (v == null) return;
@@ -447,13 +458,13 @@ class _MatchPitchState extends State<MatchPitch> {
                 _homeFormation = v;
                 _homeLabels = List<PitchSlotPlayer>.generate(
                   _slotCount(v),
-                  (_) => const PitchSlotPlayer(),
+                      (_) => const PitchSlotPlayer(),
                 );
               } else {
                 _awayFormation = v;
                 _awayLabels = List<PitchSlotPlayer>.generate(
                   _slotCount(v),
-                  (_) => const PitchSlotPlayer(),
+                      (_) => const PitchSlotPlayer(),
                 );
               }
             });
@@ -464,18 +475,16 @@ class _MatchPitchState extends State<MatchPitch> {
     );
   }
 
-  static const double _dotR = 10;
-  static const double _dotD = _dotR * 2;
-  static const double _colW = 76;
+  static const double _colW = 80;
 
   List<Widget> _buildFormationPlayersWithLabels(
-    BuildContext context,
-    double innerW,
-    double innerH, {
-    required bool home,
-    required String formation,
-    required List<PitchSlotPlayer> labels,
-  }) {
+      BuildContext context,
+      double innerW,
+      double innerH, {
+        required bool home,
+        required String formation,
+        required List<PitchSlotPlayer> labels,
+      }) {
     final rows = _parseFormation(formation);
     if (rows.isEmpty) return [];
 
@@ -489,64 +498,63 @@ class _MatchPitchState extends State<MatchPitch> {
       out.add(
         Positioned(
           left: fracX * innerW - _colW / 2,
-          top: yCenterPx - _dotR,
+          top: yCenterPx - 25,
           width: _colW,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               GestureDetector(
-                onTap: () => _openPlayerPicker(
-                  home: home,
-                  slotIndex: index,
-                ),
+                onTap: () => _openPlayerPicker(home: home, slotIndex: index),
                 child: Container(
-                  width: _dotD,
-                  height: _dotD,
-                  margin: EdgeInsets.symmetric(horizontal: (_colW - _dotD) / 2),
+                  width: 38,
+                  height: 38,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withValues(alpha: 0.9),
+                    color: label.isAssigned ? Colors.white : Colors.white24,
+                    border: Border.all(
+                      color: const Color(0xFF001D3D),
+                      width: 2.5,
+                    ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.3),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
+                        color: Colors.black.withOpacity(0.3),
+                        blurRadius: 6,
+                        offset: const Offset(0, 3),
                       ),
                     ],
-                    border: Border.all(color: const Color(0xFF001D3D), width: 1.5),
                   ),
                   alignment: Alignment.center,
                   child: Text(
-                    label.isAssigned && label.number != null
-                        ? '${label.number}'
-                        : (label.isAssigned ? '•' : ''),
-                    style: TextStyle(
-                      fontSize: label.number != null && label.number! >= 10 ? 9 : 11,
+                    label.isAssigned && label.number != null ? '${label.number}' : '+',
+                    style: GoogleFonts.poppins(
+                      fontSize: 18,
                       fontWeight: FontWeight.w900,
-                      color: const Color(0xFF001D3D),
-                      height: 1,
+                      color: label.isAssigned ? const Color(0xFF001D3D) : Colors.white,
                     ),
                   ),
                 ),
               ),
-              if (label.isAssigned) ...[
-                const SizedBox(height: 2),
-                Text(
-                  _surnameForDisplay(label.name),
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                    height: 1.05,
-                    shadows: [
-                      Shadow(color: Colors.black54, blurRadius: 2, offset: Offset(0, 1)),
-                    ],
+              const SizedBox(height: 4),
+              if (label.isAssigned)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.6),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    _surnameForDisplay(label.name).toUpperCase(),
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.visible,
+                    softWrap: false,
+                    style: GoogleFonts.inter(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
-              ],
             ],
           ),
         ),
@@ -555,25 +563,25 @@ class _MatchPitchState extends State<MatchPitch> {
     }
 
     if (home) {
-      addSlot(0.5, 40);
+      addSlot(0.5, 45); // GK
       final nRows = rows.length;
       for (var j = 0; j < nRows; j++) {
         final count = rows[j];
         final xs = _getSmartXs(count);
         final t = j / (nRows - 1 == 0 ? 1 : nRows - 1);
-        final y = (halfH * 0.30) + (t * (halfH * (0.85 - 0.30)));
+        final y = 100 + (t * (halfH - 140));
         for (final x in xs) {
           addSlot(x, y);
         }
       }
     } else {
-      addSlot(0.5, innerH - 40);
+      addSlot(0.5, innerH - 45); // GK
       final nRows = rows.length;
       for (var j = 0; j < nRows; j++) {
         final count = rows[j];
         final xs = _getSmartXs(count);
         final t = j / (nRows - 1 == 0 ? 1 : nRows - 1);
-        final y = innerH - ((halfH * 0.30) + (t * (halfH * (0.85 - 0.30))));
+        final y = innerH - (100 + (t * (halfH - 140)));
         for (final x in xs) {
           addSlot(x, y);
         }
@@ -583,17 +591,9 @@ class _MatchPitchState extends State<MatchPitch> {
     return out;
   }
 
-  Widget _buildPenaltyArea({
-    double? top,
-    double? bottom,
-    required bool isTop,
-    required Color lineColor,
-  }) {
+  Widget _buildPenaltyArea({double? top, double? bottom, required bool isTop, required Color lineColor}) {
     return Positioned(
-      left: 0,
-      right: 0,
-      top: top,
-      bottom: bottom,
+      left: 0, right: 0, top: top, bottom: bottom,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -601,25 +601,8 @@ class _MatchPitchState extends State<MatchPitch> {
           Stack(
             alignment: isTop ? Alignment.topCenter : Alignment.bottomCenter,
             children: [
-              Container(
-                width: 180,
-                height: 80,
-                decoration: BoxDecoration(
-                  border: Border.all(color: lineColor, width: 1.5),
-                ),
-              ),
-              Container(
-                width: 70,
-                height: 30,
-                decoration: BoxDecoration(
-                  border: Border.all(color: lineColor, width: 1.5),
-                ),
-              ),
-              Positioned(
-                top: isTop ? 60 : null,
-                bottom: isTop ? null : 60,
-                child: CircleAvatar(radius: 2, backgroundColor: lineColor),
-              ),
+              Container(width: 170, height: 75, decoration: BoxDecoration(border: Border.all(color: lineColor, width: 1.5))),
+              Container(width: 60, height: 25, decoration: BoxDecoration(border: Border.all(color: lineColor, width: 1.5))),
             ],
           ),
           if (isTop) _buildArc(lineColor, showBottomHalf: false),
@@ -634,19 +617,15 @@ class _MatchPitchState extends State<MatchPitch> {
         alignment: showBottomHalf ? Alignment.topCenter : Alignment.bottomCenter,
         heightFactor: 0.5,
         child: Container(
-          width: 60,
-          height: 60,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: color, width: 1.5),
-          ),
+          width: 50, height: 50,
+          decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: color, width: 1.5)),
         ),
       ),
     );
   }
 
   List<Widget> _buildCorners(Color color) {
-    const double sz = 12;
+    const double sz = 10;
     return [
       Positioned(top: 16, left: 16, child: _corner(color, br: sz)),
       Positioned(top: 16, right: 16, child: _corner(color, bl: sz)),
@@ -657,8 +636,7 @@ class _MatchPitchState extends State<MatchPitch> {
 
   Widget _corner(Color c, {double? tl, double? tr, double? bl, double? br}) {
     return Container(
-      width: 12,
-      height: 12,
+      width: 10, height: 10,
       decoration: BoxDecoration(
         border: Border(
           top: BorderSide(color: (bl != null || br != null) ? c : Colors.transparent, width: 1.5),
@@ -699,207 +677,109 @@ class _SearchablePlayerPicker extends StatefulWidget {
 class _SearchablePlayerPickerState extends State<_SearchablePlayerPicker> {
   String _query = '';
 
-  String _keyFor(TeamPlayer p) => '${p.number ?? -1}:::${p.name}';
-
   String _formatMarketValue(int value) {
-    if (value >= 1000000000) {
-      return '€${(value / 1000000000).toStringAsFixed(3)}B';
-    }
+    if (value >= 1000000000) return '€${(value / 1000000000).toStringAsFixed(2)}B';
     if (value >= 1000000) return '€${(value / 1000000).toStringAsFixed(1)}M';
-    if (value >= 1000) return '€${(value / 1000).toStringAsFixed(0)}k';
-    return '€$value';
-  }
-
-  String _formatHeight(int cm) => '${(cm / 100).toStringAsFixed(2)}m';
-
-  (String, Color) _footBadge(String footRaw) {
-    final foot = footRaw.toLowerCase();
-    if (foot.contains('left')) return ('L', Colors.orange[700]!);
-    if (foot.contains('both')) return ('B', Colors.green[700]!);
-    return ('R', Colors.blue[700]!);
-  }
-
-  List<TeamPlayer> _filtered(List<TeamPlayer> players) {
-    final q = _query.trim().toLowerCase();
-    if (q.isEmpty) return players;
-    return players
-        .where((p) =>
-            p.name.toLowerCase().contains(q) ||
-            p.position.toLowerCase().contains(q))
-        .toList();
+    return '€${(value / 1000).toStringAsFixed(0)}k';
   }
 
   @override
   Widget build(BuildContext context) {
-    final goalkeepers = _filtered(
-      widget.players.where((p) => p.categoryPosition == 'Goalkeeper').toList(),
-    );
-    final defenders = _filtered(
-      widget.players.where((p) => p.categoryPosition == 'Defender').toList(),
-    );
-    final midfielders = _filtered(
-      widget.players.where((p) => p.categoryPosition == 'Midfielder').toList(),
-    );
-    final attackers = _filtered(
-      widget.players.where((p) => p.categoryPosition == 'Attacker').toList(),
-    );
+    final filtered = widget.players.where((p) =>
+    p.name.toLowerCase().contains(_query.toLowerCase()) ||
+        p.position.toLowerCase().contains(_query.toLowerCase())
+    ).toList();
 
-    Widget buildSection(String title, List<TeamPlayer> items) {
-      if (items.isEmpty) return const SizedBox.shrink();
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.85,
+      decoration: const BoxDecoration(
+        color: Color(0xFFF5F7F9),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+      ),
+      child: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
-            child: Text(
-              title,
-              style: const TextStyle(fontWeight: FontWeight.w700),
-            ),
-          ),
-          ...items.map(
-            (p) {
-              final (footLabel, footColor) = _footBadge(p.preferredFoot);
-              return ListTile(
-                dense: true,
-                leading: CircleAvatar(
-                  radius: 14,
-                  child: Text(
-                    p.number?.toString() ?? '-',
-                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
-                  ),
-                ),
-                title: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        '${abbreviatePlayerPosition(p.position)} | ${p.name}',
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      '${p.caps} / ${p.goals}',
-                      style: TextStyle(
-                        color: Colors.blueGrey[500],
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      _formatHeight(p.heightCm),
-                      style: TextStyle(
-                        color: Colors.blueGrey[500],
-                        fontSize: 11,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Container(
-                      width: 16,
-                      height: 16,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: footColor.withValues(alpha: 0.1),
-                        border: Border.all(
-                          color: footColor.withValues(alpha: 0.5),
-                          width: 0.5,
-                        ),
-                      ),
-                      child: Text(
-                        footLabel,
-                        style: TextStyle(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w700,
-                          color: footColor,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                trailing: Text(
-                  _formatMarketValue(p.marketValue),
-                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
-                ),
-                onTap: () => Navigator.pop(context, _keyFor(p)),
-              );
-            },
-          ),
-        ],
-      );
-    }
+          const SizedBox(height: 12),
+          Container(width: 40, height: 5, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10))),
 
-    return SafeArea(
-      child: DraggableScrollableSheet(
-        expand: false,
-        initialChildSize: 0.72,
-        minChildSize: 0.45,
-        maxChildSize: 0.9,
-        builder: (_, controller) {
-          return Material(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-            child: Column(
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
               children: [
-                const SizedBox(height: 8),
-                Container(
-                  width: 36,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.black26,
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          autofocus: true,
-                          onChanged: (v) => setState(() => _query = v),
-                          decoration: const InputDecoration(
-                            prefixIcon: Icon(Icons.search),
-                            hintText: 'Search player',
-                            border: OutlineInputBorder(),
-                            isDense: true,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, ''),
-                        child: const Text('Clear'),
-                      ),
-                    ],
-                  ),
-                ),
-                const Divider(height: 1),
                 Expanded(
-                  child: ListView(
-                    controller: controller,
-                    children: [
-                      if (widget.orphanAssigned)
-                        ListTile(
-                          dense: true,
-                          title: Text(
-                            '${abbreviatePlayerPosition(widget.orphanPosition)} | ${widget.orphanLabel}',
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          onTap: () => Navigator.pop(context, widget.savedKey),
-                        ),
-                      if (widget.orphanAssigned) const Divider(height: 1),
-                      buildSection('Goalkeepers', goalkeepers),
-                      buildSection('Defence', defenders),
-                      buildSection('Midfielders', midfielders),
-                      buildSection('Attackers', attackers),
-                    ],
+                  child: TextField(
+                    onChanged: (v) => setState(() => _query = v),
+                    decoration: InputDecoration(
+                      hintText: 'Search squad...',
+                      prefixIcon: const Icon(Icons.search, color: Color(0xFF001D3D)),
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                    ),
                   ),
+                ),
+                const SizedBox(width: 12),
+                TextButton(
+                  onPressed: () => Navigator.pop(context, ''),
+                  child: const Text('Clear', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
-          );
-        },
+          ),
+
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              children: [
+                if (widget.orphanAssigned)
+                  _buildPlayerTile(context, widget.orphanLabel, widget.orphanPosition, widget.savedKey, 0, 0, 0, ""),
+
+                _buildSection("Goalkeepers", filtered.where((p) => p.categoryPosition == "Goalkeeper")),
+                _buildSection("Defenders", filtered.where((p) => p.categoryPosition == "Defender")),
+                _buildSection("Midfielders", filtered.where((p) => p.categoryPosition == "Midfielder")),
+                _buildSection("Attackers", filtered.where((p) => p.categoryPosition == "Attacker")),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSection(String title, Iterable<TeamPlayer> players) {
+    if (players.isEmpty) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+          child: Text(title.toUpperCase(), style: GoogleFonts.bebasNeue(fontSize: 18, letterSpacing: 1.2, color: Colors.blueGrey)),
+        ),
+        ...players.map((p) => _buildPlayerTile(
+            context, p.name, p.position, '${p.number ?? -1}:::${p.name}',
+            p.number ?? 0, p.marketValue, p.heightCm, p.preferredFoot
+        )),
+      ],
+    );
+  }
+
+  Widget _buildPlayerTile(BuildContext context, String name, String pos, String key, int num, int val, int h, String foot) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 4, offset: const Offset(0, 2))],
+      ),
+      child: ListTile(
+        onTap: () => Navigator.pop(context, key),
+        leading: CircleAvatar(
+          backgroundColor: const Color(0xFF001D3D),
+          radius: 18,
+          child: Text('$num', style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+        ),
+        title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+        subtitle: Text('$pos • ${h}cm • $foot'),
+        trailing: Text(_formatMarketValue(val), style: GoogleFonts.inter(fontWeight: FontWeight.w900, color: const Color(0xFF1B8F3A), fontSize: 13)),
       ),
     );
   }

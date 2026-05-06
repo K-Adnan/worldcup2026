@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -19,8 +21,6 @@ class MatchCenterScreen extends StatefulWidget {
 
   final MatchFixture match;
   final List<TeamInfo> teams;
-
-  /// Full schedule (from [WorldCupData]) so Round of 32 slots can be re-resolved after Firestore refresh.
   final List<MatchFixture>? allScheduleMatchesForBracket;
 
   @override
@@ -29,11 +29,28 @@ class MatchCenterScreen extends StatefulWidget {
 
 class _MatchCenterScreenState extends State<MatchCenterScreen> {
   late final Future<MatchFixture> _matchFuture;
+  late final ScrollController _scrollController;
+  double _scrollOffset = 0;
 
   @override
   void initState() {
     super.initState();
     _matchFuture = _loadLatestMatch();
+    _scrollController = ScrollController()..addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final next = _scrollController.offset;
+    if ((next - _scrollOffset).abs() < 1) return;
+    setState(() => _scrollOffset = next);
   }
 
   Future<MatchFixture> _loadLatestMatch() async {
@@ -54,6 +71,16 @@ class _MatchCenterScreenState extends State<MatchCenterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final safeTop = MediaQuery.of(context).padding.top;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    final collapseProgress = (_scrollOffset / 200).clamp(0.0, 1.0);
+
+    // Lerp heights for the background space
+    final headerHeight = lerpDouble(205, 112, collapseProgress)!;
+    final panelTop = safeTop + headerHeight;
+    final fixedPitchHeight = (screenHeight * 0.78).clamp(460.0, 860.0);
+
     return FutureBuilder<MatchFixture>(
       future: _matchFuture,
       builder: (context, snapshot) {
@@ -63,39 +90,23 @@ class _MatchCenterScreenState extends State<MatchCenterScreen> {
 
         return Scaffold(
           backgroundColor: const Color(0xFF001D3D),
-          appBar: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            iconTheme: const IconThemeData(color: Colors.white),
-            title: Text(
-              match.stage.toUpperCase(),
-              style: GoogleFonts.bebasNeue(
-                letterSpacing: 2,
-                fontSize: 24,
-                color: Colors.white,
-              ),
-            ),
-            actions: [
-              if (loading)
-                const Padding(
-                  padding: EdgeInsets.only(right: 16),
-                  child: Center(
-                    child: SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white70,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          body: Column(
+          body: Stack(
             children: [
-              _buildHeroScoreboard(context, match),
-              Expanded(
+              // HERO SCOREBOARD with Translation
+              Positioned(
+                top: safeTop + 20,
+                left: 16,
+                right: 16,
+                child: _buildHeroScoreboard(
+                  context,
+                  match,
+                  collapseProgress: collapseProgress,
+                ),
+              ),
+
+              // CONTENT PANEL
+              Positioned.fill(
+                top: panelTop,
                 child: Container(
                   width: double.infinity,
                   decoration: const BoxDecoration(
@@ -107,10 +118,10 @@ class _MatchCenterScreenState extends State<MatchCenterScreen> {
                   ),
                   child: LayoutBuilder(
                     builder: (context, constraints) {
-                      final pitchHeight =
-                          (constraints.maxHeight - 48).clamp(320.0, 1200.0);
                       return SingleChildScrollView(
-                        padding: const EdgeInsets.all(24),
+                        controller: _scrollController,
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -135,10 +146,10 @@ class _MatchCenterScreenState extends State<MatchCenterScreen> {
                             MatchPitch(
                               key: ValueKey<String>(
                                 '${match.matchNumber}-${match.homeFormation}-${match.awayFormation}'
-                                '-${_slotPlayersKey(match.homeSlotPlayers)}'
-                                '-${_slotPlayersKey(match.awaySlotPlayers)}',
+                                    '-${_slotPlayersKey(match.homeSlotPlayers)}'
+                                    '-${_slotPlayersKey(match.awaySlotPlayers)}',
                               ),
-                              height: pitchHeight,
+                              height: fixedPitchHeight,
                               matchNumber: match.matchNumber,
                               initialHomeFormation: match.homeFormation,
                               initialAwayFormation: match.awayFormation,
@@ -156,6 +167,32 @@ class _MatchCenterScreenState extends State<MatchCenterScreen> {
                   ),
                 ),
               ),
+
+              // BACK BUTTON
+              Positioned(
+                top: safeTop + 8,
+                left: 8,
+                child: Material(
+                  color: Colors.transparent,
+                  child: IconButton(
+                    icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+                    onPressed: () => Navigator.of(context).maybePop(),
+                  ),
+                ),
+              ),
+              if (loading)
+                Positioned(
+                  top: safeTop + 10,
+                  right: 16,
+                  child: const SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white70,
+                    ),
+                  ),
+                ),
             ],
           ),
         );
@@ -163,89 +200,107 @@ class _MatchCenterScreenState extends State<MatchCenterScreen> {
     );
   }
 
-  Widget _buildHeroScoreboard(BuildContext context, MatchFixture match) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+  Widget _buildHeroScoreboard(
+      BuildContext context,
+      MatchFixture match, {
+        required double collapseProgress,
+      }) {
+    // This value determines how far up the scoreboard moves.
+    // -80 means it will slide up by 80 pixels as you scroll.
+    final translateY = lerpDouble(0, -80, collapseProgress)!;
+
+    final teamScale = lerpDouble(1, 0.70, collapseProgress)!;
+    final scoreScale = lerpDouble(1, 0.65, collapseProgress)!;
+    final stageOpacity = (1 - (collapseProgress * 2.0)).clamp(0.0, 1.0);
+
+    return Transform.translate(
+      offset: Offset(0, translateY),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          _heroTeam(context, match.homeTeam),
-          _heroScoreDisplay(match),
-          _heroTeam(context, match.awayTeam),
+          Opacity(
+            opacity: stageOpacity,
+            child: Text(
+              match.stage.toUpperCase(),
+              style: GoogleFonts.bebasNeue(
+                letterSpacing: 2,
+                fontSize: 24,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              _heroTeam(context, match.homeTeam, scale: teamScale, collapseProgress: collapseProgress),
+              _heroScoreDisplay(match, scale: scoreScale, collapseProgress: collapseProgress),
+              _heroTeam(context, match.awayTeam, scale: teamScale, collapseProgress: collapseProgress),
+            ],
+          ),
         ],
       ),
     );
   }
 
-  Widget _heroTeam(BuildContext context, String teamName) {
-    final u = teamName.trim().toUpperCase();
-    final isPlaceholder = teamName.startsWith('Group ') ||
-        teamName.startsWith('Match ') ||
-        RegExp(r'^[A-L]-[123]$').hasMatch(u) ||
-        RegExp(r'^[123][A-L]$').hasMatch(u) ||
-        RegExp(r'^[A-L](?:/[A-L])+-3$').hasMatch(u);
+  Widget _heroTeam(
+      BuildContext context,
+      String teamName, {
+        required double scale,
+        required double collapseProgress,
+      }) {
     final team = _findTeamByName(teamName);
-    final canOpenTeam = !isPlaceholder && team != null;
+    final canOpenTeam = team != null;
 
     return Expanded(
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          GestureDetector(
-            onTap: canOpenTeam
-                ? () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => TeamDetailScreen(team: team),
-                      ),
-                    );
-                  }
-                : null,
-            child: Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.3),
-                    blurRadius: 20,
-                    spreadRadius: 2,
-                  )
-                ],
-              ),
-              child: CircleAvatar(
-                radius: 40,
-                backgroundColor: Colors.white,
-                child: isPlaceholder
-                    ? const Icon(Icons.help_outline, size: 28, color: Colors.grey)
-                    : ClipOval(
-                        child: SvgPicture.asset(
-                          roundFlagAssetForTeam(teamName),
-                          width: 80,
-                          height: 80,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
+          Transform.scale(
+            scale: scale,
+            child: GestureDetector(
+              onTap: canOpenTeam
+                  ? () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => TeamDetailScreen(team: team)),
+              )
+                  : null,
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.3 * (1 - collapseProgress)),
+                      blurRadius: 20,
+                      spreadRadius: 2,
+                    )
+                  ],
+                ),
+                child: CircleAvatar(
+                  radius: 40,
+                  backgroundColor: Colors.white,
+                  child: ClipOval(
+                    child: SvgPicture.asset(
+                      roundFlagAssetForTeam(teamName),
+                      width: 80,
+                      height: 80,
+                      fit: BoxFit.cover,
+                      placeholderBuilder: (_) => const Icon(Icons.help_outline, size: 28, color: Colors.grey),
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
-          const SizedBox(height: 12),
-          GestureDetector(
-            onTap: canOpenTeam
-                ? () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => TeamDetailScreen(team: team),
-                      ),
-                    );
-                  }
-                : null,
-            child: Text(
-              teamName.toUpperCase(),
-              textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(
-                color: Colors.white,
-                fontWeight: FontWeight.w800,
-                fontSize: 14,
-              ),
+          // We reduce the spacing as we scroll to keep it tight
+          SizedBox(height: lerpDouble(12, 4, collapseProgress)!),
+          Text(
+            teamName.toUpperCase(),
+            textAlign: TextAlign.center,
+            style: GoogleFonts.poppins(
+              color: Colors.white,
+              fontWeight: FontWeight.w800,
+              fontSize: lerpDouble(14, 10, collapseProgress)!,
             ),
           ),
         ],
@@ -253,13 +308,14 @@ class _MatchCenterScreenState extends State<MatchCenterScreen> {
     );
   }
 
-  Widget _heroScoreDisplay(MatchFixture match) {
+  Widget _heroScoreDisplay(MatchFixture match, {required double scale, required double collapseProgress}) {
     final homeScore = match.homeScore.trim().isEmpty ? '-' : match.homeScore;
     final awayScore = match.awayScore.trim().isEmpty ? '-' : match.awayScore;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+    return Transform.scale(
+      scale: scale,
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             '$homeScore : $awayScore',
@@ -269,18 +325,22 @@ class _MatchCenterScreenState extends State<MatchCenterScreen> {
               letterSpacing: 4,
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(
-              color: Colors.white10,
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Text(
-              'MATCH ${match.matchNumber}',
-              style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
+          // Hide the "Match Number" tag early to save space when collapsed
+          Opacity(
+            opacity: (1 - (collapseProgress * 3)).clamp(0.0, 1.0),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.white10,
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                'MATCH ${match.matchNumber}',
+                style: const TextStyle(
+                  color: Colors.white70,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           )
@@ -288,6 +348,8 @@ class _MatchCenterScreenState extends State<MatchCenterScreen> {
       ),
     );
   }
+
+  // ... (Rest of the helper methods remain exactly the same)
 
   Widget _sectionLabel(String text) {
     return Text(
