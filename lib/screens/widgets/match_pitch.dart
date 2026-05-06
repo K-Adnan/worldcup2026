@@ -218,6 +218,28 @@ class _MatchPitchState extends State<MatchPitch> {
     return '';
   }
 
+  int? _ageForKey(List<TeamPlayer> squad, String key) {
+    for (final p in squad) {
+      if ('${p.number ?? -1}:::${p.name}' == key) {
+        return _ageInYears(p.dateOfBirth);
+      }
+    }
+    return null;
+  }
+
+  String _preferredFootForKey(List<TeamPlayer> squad, String key) {
+    for (final p in squad) {
+      if ('${p.number ?? -1}:::${p.name}' == key) return p.preferredFoot;
+    }
+    return '';
+  }
+
+  int _ageInYears(DateTime? dob) {
+    if (dob == null) return 0;
+    final now = DateTime.now();
+    return now.year - dob.year - (now.month < dob.month || (now.month == dob.month && now.day < dob.day) ? 1 : 0);
+  }
+
   Future<void> _openPlayerPicker({
     required bool home,
     required int slotIndex,
@@ -268,6 +290,9 @@ class _MatchPitchState extends State<MatchPitch> {
         orphanAssigned: orphanAssigned,
         orphanLabel: current.name,
         orphanPosition: _positionForKey(squad, savedKey),
+        orphanAge: _ageForKey(squad, savedKey),
+        orphanFoot: _preferredFootForKey(squad, savedKey),
+        initialSelectedFilters: _defaultPickerFilters(home: home, slotIndex: slotIndex),
       ),
     );
 
@@ -282,6 +307,36 @@ class _MatchPitchState extends State<MatchPitch> {
       }
     });
     await _persistSlotPlayers(home: home);
+  }
+
+  Set<String> _defaultPickerFilters({
+    required bool home,
+    required int slotIndex,
+  }) {
+    if (slotIndex == 0) return <String>{};
+
+    final formation = home ? _homeFormation : _awayFormation;
+    final rows = _parseFormation(formation);
+    var firstSlotInRow = 1;
+    var outfieldRowIndex = -1;
+
+    for (var i = 0; i < rows.length; i++) {
+      final rowCount = rows[i];
+      final lastSlotInRow = firstSlotInRow + rowCount - 1;
+      if (slotIndex >= firstSlotInRow && slotIndex <= lastSlotInRow) {
+        outfieldRowIndex = i;
+        break;
+      }
+      firstSlotInRow = lastSlotInRow + 1;
+    }
+
+    if (outfieldRowIndex < 0) return <String>{};
+    if (outfieldRowIndex == 0) return <String>{'DF'};
+    if (outfieldRowIndex == 1) return <String>{'MD'};
+    if (outfieldRowIndex == 2 && rows.length >= 4) {
+      return <String>{'MD', 'FW'};
+    }
+    return <String>{'FW'};
   }
 
   static List<double> _getSmartXs(int count) {
@@ -506,8 +561,8 @@ class _MatchPitchState extends State<MatchPitch> {
               GestureDetector(
                 onTap: () => _openPlayerPicker(home: home, slotIndex: index),
                 child: Container(
-                  width: 38,
-                  height: 38,
+                  width: 34,
+                  height: 34,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: label.isAssigned ? Colors.white : Colors.white24,
@@ -662,6 +717,9 @@ class _SearchablePlayerPicker extends StatefulWidget {
     required this.orphanAssigned,
     required this.orphanLabel,
     required this.orphanPosition,
+    required this.orphanAge,
+    required this.orphanFoot,
+    required this.initialSelectedFilters,
   });
 
   final List<TeamPlayer> players;
@@ -669,6 +727,9 @@ class _SearchablePlayerPicker extends StatefulWidget {
   final bool orphanAssigned;
   final String orphanLabel;
   final String orphanPosition;
+  final int? orphanAge;
+  final String orphanFoot;
+  final Set<String> initialSelectedFilters;
 
   @override
   State<_SearchablePlayerPicker> createState() => _SearchablePlayerPickerState();
@@ -676,6 +737,13 @@ class _SearchablePlayerPicker extends StatefulWidget {
 
 class _SearchablePlayerPickerState extends State<_SearchablePlayerPicker> {
   String _query = '';
+  final Set<String> _selectedPositionFilters = <String>{};
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedPositionFilters.addAll(widget.initialSelectedFilters);
+  }
 
   String _formatMarketValue(int value) {
     if (value >= 1000000000) return '€${(value / 1000000000).toStringAsFixed(2)}B';
@@ -683,12 +751,26 @@ class _SearchablePlayerPickerState extends State<_SearchablePlayerPicker> {
     return '€${(value / 1000).toStringAsFixed(0)}k';
   }
 
+  bool _matchesPositionFilter(TeamPlayer player) {
+    if (player.categoryPosition == 'Goalkeeper') return true;
+    if (_selectedPositionFilters.isEmpty) return true;
+    final code = switch (player.categoryPosition) {
+      'Defender' => 'DF',
+      'Midfielder' => 'MD',
+      'Attacker' => 'FW',
+      _ => '',
+    };
+    return code.isNotEmpty && _selectedPositionFilters.contains(code);
+  }
+
   @override
   Widget build(BuildContext context) {
     final filtered = widget.players.where((p) =>
-    p.name.toLowerCase().contains(_query.toLowerCase()) ||
-        p.position.toLowerCase().contains(_query.toLowerCase())
+        (p.name.toLowerCase().contains(_query.toLowerCase()) ||
+            p.position.toLowerCase().contains(_query.toLowerCase())) &&
+        _matchesPositionFilter(p)
     ).toList();
+    final showPositionFilters = widget.players.any((p) => p.categoryPosition != 'Goalkeeper');
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.85,
@@ -725,13 +807,36 @@ class _SearchablePlayerPickerState extends State<_SearchablePlayerPicker> {
               ],
             ),
           ),
+          if (showPositionFilters)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _positionChip('DF'),
+                  _positionChip('MD'),
+                  _positionChip('FW'),
+                ],
+              ),
+            ),
 
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               children: [
                 if (widget.orphanAssigned)
-                  _buildPlayerTile(context, widget.orphanLabel, widget.orphanPosition, widget.savedKey, 0, 0, 0, ""),
+                  _buildPlayerTile(
+                    context,
+                    widget.orphanLabel,
+                    abbreviatePlayerPosition(widget.orphanPosition),
+                    widget.savedKey,
+                    0,
+                    0,
+                    widget.orphanAge,
+                    0,
+                    widget.orphanFoot,
+                  ),
 
                 _buildSection("Goalkeepers", filtered.where((p) => p.categoryPosition == "Goalkeeper")),
                 _buildSection("Defenders", filtered.where((p) => p.categoryPosition == "Defender")),
@@ -755,19 +860,64 @@ class _SearchablePlayerPickerState extends State<_SearchablePlayerPicker> {
           child: Text(title.toUpperCase(), style: GoogleFonts.bebasNeue(fontSize: 18, letterSpacing: 1.2, color: Colors.blueGrey)),
         ),
         ...players.map((p) => _buildPlayerTile(
-            context, p.name, p.position, '${p.number ?? -1}:::${p.name}',
-            p.number ?? 0, p.marketValue, p.heightCm, p.preferredFoot
+            context, p.name, abbreviatePlayerPosition(p.position), '${p.number ?? -1}:::${p.name}',
+            p.number ?? 0, p.marketValue, _ageInYears(p.dateOfBirth), p.heightCm, p.preferredFoot
         )),
       ],
     );
   }
 
-  Widget _buildPlayerTile(BuildContext context, String name, String pos, String key, int num, int val, int h, String foot) {
+  int _ageInYears(DateTime? dob) {
+    if (dob == null) return 0;
+    final now = DateTime.now();
+    return now.year - dob.year - (now.month < dob.month || (now.month == dob.month && now.day < dob.day) ? 1 : 0);
+  }
+
+  Widget _positionChip(String code) {
+    final selected = _selectedPositionFilters.contains(code);
+    return FilterChip(
+      label: Text(
+        code,
+        style: TextStyle(
+          fontWeight: FontWeight.w700,
+          color: selected ? Colors.white : const Color(0xFF001D3D),
+        ),
+      ),
+      selected: selected,
+      onSelected: (value) {
+        setState(() {
+          if (value) {
+            _selectedPositionFilters.add(code);
+          } else {
+            _selectedPositionFilters.remove(code);
+          }
+        });
+      },
+      selectedColor: const Color(0xFF001D3D),
+      checkmarkColor: Colors.white,
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(
+          color: selected ? const Color(0xFF001D3D) : Colors.blueGrey.shade100,
+        ),
+      ),
+      side: BorderSide(
+        color: selected ? const Color(0xFF001D3D) : Colors.blueGrey.shade100,
+      ),
+    );
+  }
+
+  Widget _buildPlayerTile(BuildContext context, String name, String pos, String key, int num, int val, int? age, int heightCm, String foot) {
+    final isCurrentlySelected = key == widget.savedKey;
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isCurrentlySelected ? const Color(0xFFE8F0FE) : Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: isCurrentlySelected
+            ? Border.all(color: const Color(0xFF001D3D).withValues(alpha: 0.35), width: 1.2)
+            : null,
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 4, offset: const Offset(0, 2))],
       ),
       child: ListTile(
@@ -778,8 +928,65 @@ class _SearchablePlayerPickerState extends State<_SearchablePlayerPicker> {
           child: Text('$num', style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
         ),
         title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-        subtitle: Text('$pos • ${h}cm • $foot'),
-        trailing: Text(_formatMarketValue(val), style: GoogleFonts.inter(fontWeight: FontWeight.w900, color: const Color(0xFF1B8F3A), fontSize: 13)),
+        subtitle: Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 6,
+          children: [
+            Text('$pos • ${age != null && age > 0 ? '${age}y' : '--'} • ${heightCm > 0 ? '${heightCm}cm' : '--'}'),
+            _buildFootBadge(foot),
+          ],
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (isCurrentlySelected) ...[
+              const Icon(Icons.check_circle, color: Color(0xFF001D3D), size: 16),
+              const SizedBox(width: 6),
+            ],
+            Text(
+              _formatMarketValue(val),
+              style: GoogleFonts.inter(
+                fontWeight: FontWeight.w900,
+                color: const Color(0xFF1B8F3A),
+                fontSize: 13,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFootBadge(String foot) {
+    final f = foot.toLowerCase();
+    String label = "R";
+    Color color = Colors.blueGrey;
+
+    if (f.contains("left")) {
+      label = "L";
+      color = Colors.orange[700]!;
+    } else if (f.contains("both")) {
+      label = "B";
+      color = Colors.green[700]!;
+    } else {
+      label = "R";
+      color = Colors.blue[700]!;
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        shape: BoxShape.circle,
+        border: Border.all(color: color.withValues(alpha: 0.5), width: 0.5),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 9,
+          fontWeight: FontWeight.bold,
+          color: color,
+        ),
       ),
     );
   }
